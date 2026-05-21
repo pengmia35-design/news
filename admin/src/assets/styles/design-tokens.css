@@ -1,0 +1,149 @@
+/* ========================================
+   TechAI Admin - 设计令牌系统
+   "Dark Precision" — 暗色精准终端风格
+   主色: True Black + Emerald Green
+   ======================================== */
+
+/* 原始令牌 - 基础色板 */
+:root {
+  /* Dark 暗色系 */
+  --color-dark-950: #050508;
+  --color-dark-900: #0A0A0B;
+  --color-dark-800: #0F0F12;
+  --color-dark-700: #141418;
+  --color-dark-600: #1C1C21;
+  --color-dark-500: #25252D;
+  --color-dark-400: #2D2D38;
+  --color-dark-300: #3A3A48;
+  --color-dark-200: #52525E;
+  --color-dark-100: #6B6B78;
+
+  /* Emerald 翠绿 (主色) */
+  --color-emerald-50: #ECFDF5;
+  --color-emerald-100: #D1FAE5;
+  --color-emerald-200: #A7F3D0;
+  --color-emerald-300: #6EE7B7;
+  --color-emerald-400: #34D399;
+  --color-emerald-500: #10B981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065F46;
+  --color-emerald-900: #064E3B;
+
+  /* 暖灰色系 */
+  --color-gray-50: #FAFAFA;
+  --color-gray-100: #F4F4F5;
+  --color-gray-200: #E4E4E7;
+  --color-gray-300: #D4D4D8;
+  --color-gray-400: #A1A1AA;
+  --color-gray-500: #71717A;
+  --color-gray-600: #52525B;
+  --color-gray-700: #3F3F46;
+  --color-gray-800: #27272A;
+  --color-gray-900: #18181B;
+
+  /* 语义色 */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+}
+
+/* 语义令牌 — 永久暗模式 */
+:root {
+  --color-background: #0A0A0B;
+  --color-foreground: #E4E4E7;
+
+  --color-card: #141418;
+  --color-card-foreground: #E4E4E7;
+
+  --color-primary: #10B981;
+  --color-primary-hover: #059669;
+  --color-primary-active: #047857;
+  --color-primary-foreground: #FFFFFF;
+
+  --color-secondary: #1C1C21;
+  --color-secondary-foreground: #E4E4E7;
+
+  --color-muted: #1C1C21;
+  --color-muted-foreground: #6B6B78;
+
+  --color-accent: #064E3B;
+  --color-accent-foreground: #34D399;
+
+  --color-border: #25252D;
+  --color-input: #25252D;
+  --color-ring: #10B981;
+}
+
+/* 组件令牌 - 卡片 */
+:root {
+  --card-radius: 8px;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --card-shadow-hover: 0 4px 16px rgba(16, 185, 129, 0.06);
+  --card-padding: 24px;
+  --card-gap: 16px;
+}
+
+/* 间距系统 (4px 基准) */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --spacing-section: 48px;
+  --spacing-page-x: 16px;
+  --spacing-page-y: 24px;
+}
+
+/* 字体系统 */
+:root {
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;
+}
+
+/* 圆角 — 锐利风格 */
+:root {
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+}
+
+/* 阴影 */
+:root {
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* 过渡动画 */
+:root {
+  --transition-fast: 120ms ease;
+  --transition-normal: 180ms ease;
+  --transition-slow: 250ms ease;
+}

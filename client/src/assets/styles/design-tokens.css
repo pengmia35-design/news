@@ -1,0 +1,171 @@
+/* ========================================
+   TechAI 资讯 - 设计令牌系统
+   "Refined Tech Editorial" — 暖色调杂志风格
+   主色: Ink Navy + Warm Cream + Amber Gold
+   ======================================== */
+
+/* 原始令牌 - 基础色板 */
+:root {
+  /* Ink 深色系 (替代蓝) */
+  --color-ink-50: #F4F4F6;
+  --color-ink-100: #E4E4EA;
+  --color-ink-200: #C5C5D2;
+  --color-ink-300: #9D9DB5;
+  --color-ink-400: #6E6E8B;
+  --color-ink-500: #4A4A65;
+  --color-ink-600: #2D2D45;
+  --color-ink-700: #1A1A2E;
+  --color-ink-800: #111128;
+  --color-ink-900: #0A0A1E;
+  --color-ink-950: #050515;
+
+  /* Cream 暖白系 */
+  --color-cream-50: #FFFEF9;
+  --color-cream-100: #FFFDF2;
+  --color-cream-200: #FFF9E6;
+  --color-cream-300: #FFF3D6;
+
+  /* Amber 金琥珀 (强调色) */
+  --color-amber-50: #FFFBEB;
+  --color-amber-100: #FEF3C7;
+  --color-amber-200: #FDE68A;
+  --color-amber-300: #FCD34D;
+  --color-amber-400: #FBBF24;
+  --color-amber-500: #F59E0B;
+  --color-amber-600: #D97706;
+  --color-amber-700: #B45309;
+  --color-amber-800: #92400E;
+  --color-amber-900: #78350F;
+
+  /* 灰色系 (暖灰) */
+  --color-gray-50: #FAFAFA;
+  --color-gray-100: #F5F5F4;
+  --color-gray-200: #E7E5E4;
+  --color-gray-300: #D6D3D1;
+  --color-gray-400: #A8A29E;
+  --color-gray-500: #78716C;
+  --color-gray-600: #57534E;
+  --color-gray-700: #44403C;
+  --color-gray-800: #292524;
+  --color-gray-900: #1C1917;
+
+  /* 语义色 */
+  --color-success: #16A34A;
+  --color-warning: #EAB308;
+  --color-error: #DC2626;
+  --color-info: #3B82F6;
+}
+
+/* 语义令牌 */
+:root {
+  --color-background: #FFFDF7;
+  --color-foreground: #1A1A2E;
+
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1A1A2E;
+
+  --color-primary: #1A1A2E;
+  --color-primary-hover: #2D2D45;
+  --color-primary-active: #111128;
+  --color-primary-foreground: #FFFFFF;
+
+  --color-secondary: #F4F4F6;
+  --color-secondary-foreground: #1A1A2E;
+
+  --color-muted: #F4F4F6;
+  --color-muted-foreground: #6E6E8B;
+
+  --color-accent: #FFFDF2;
+  --color-accent-foreground: #D97706;
+
+  --color-border: #E4E4EA;
+  --color-input: #E4E4EA;
+  --color-ring: #D97706;
+}
+
+/* 组件令牌 - 卡片 */
+:root {
+  --card-radius: 12px;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --card-shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --card-padding: 24px;
+  --card-gap: 16px;
+}
+
+/* 间距系统 (4px 基准) */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --spacing-section: 48px;
+  --spacing-page-x: 16px;
+  --spacing-page-y: 24px;
+}
+
+/* 字体系统 */
+:root {
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;
+}
+
+/* 圆角 */
+:root {
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+}
+
+/* 阴影 */
+:root {
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+/* 过渡动画 */
+:root {
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+}
+
+/* 深色模式 */
+.dark {
+  --color-background: #0A0A1E;
+  --color-foreground: #E4E4EA;
+  --color-card: #1A1A2E;
+  --color-card-foreground: #E4E4EA;
+  --color-border: #2D2D45;
+  --color-muted: #1A1A2E;
+  --color-muted-foreground: #9D9DB5;
+  --color-secondary: #1A1A2E;
+  --color-secondary-foreground: #E4E4EA;
+  --color-accent: #B45309;
+  --color-accent-foreground: #FDE68A;
+}

@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>指挥中心 — SAAS 管理系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   CSS Custom Properties — Industrial Command
+   ============================================ */
+:root {
+  /* Surface */
+  --bg-root: #080A0E;
+  --bg-base: #0D0F14;
+  --bg-elevated: #13161C;
+  --bg-card: #181B22;
+  --bg-hover: #1E2129;
+  --bg-input: #0F1117;
+
+  /* Borders */
+  --border-thin: 1px solid rgba(255,255,255,0.06);
+  --border-subtle: 1px solid rgba(255,255,255,0.10);
+  --border-active: 1px solid rgba(232,168,64,0.40);
+
+  /* Text */
+  --text-primary: #E4E7EC;
+  --text-secondary: #8B919E;
+  --text-muted: #5A6070;
+  --text-accent: #E8A840;
+
+  /* Accents */
+  --amber: #E8A840;
+  --amber-dim: #C48830;
+  --amber-glow: rgba(232,168,64,0.15);
+  --cyan: #22D3EE;
+  --cyan-dim: #0E9FB3;
+  --cyan-glow: rgba(34,211,238,0.12);
+
+  /* Semantic */
+  --success: #34D399;
+  --success-bg: rgba(52,211,153,0.10);
+  --warning: #FBBF24;
+  --warning-bg: rgba(251,191,36,0.10);
+  --danger: #F87171;
+  --danger-bg: rgba(248,113,113,0.10);
+  --info: #60A5FA;
+  --info-bg: rgba(96,165,250,0.10);
+
+  /* Spacing */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px;
+  --space-4: 16px; --space-5: 20px; --space-6: 24px;
+  --space-8: 32px; --space-10: 40px; --space-12: 48px;
+
+  /* Sidebar */
+  --sidebar-w: 240px;
+  --topbar-h: 56px;
+
+  /* Fonts */
+  --font-ui: 'Barlow', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Transitions */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration: 200ms;
+}
+
+/* ============================================
+   Reset & Base
+   ============================================ */
+*, *::before, *::after {
+  margin: 0; padding: 0; box-sizing: border-box;
+}
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-root);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+/* Background ambient texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    /* Subtle grid */
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 1px,
+      rgba(255,255,255,0.008) 1px,
+      rgba(255,255,255,0.008) 2px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 1px,
+      rgba(255,255,255,0.008) 1px,
+      rgba(255,255,255,0.008) 2px
+    );
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 60% 60% at 50% 0%, black 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 0%, black 40%, transparent 100%);
+}
+
+/* Noise overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+}
+
+/* ============================================
+   Scrollbar
+   ============================================ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+
+/* ============================================
+   Layout
+   ============================================ */
+.app {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--bg-base);
+  border-right: var(--border-thin);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  transition: transform var(--duration) var(--ease-out);
+}
+
+.sidebar-brand {
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border-bottom: var(--border-thin);
+  height: var(--topbar-h);
+}
+.sidebar-brand .logo {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--amber), var(--amber-dim));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 600; font-size: 14px;
+  color: #0D0F14;
+}
+.sidebar-brand h1 {
+  font-size: 15px; font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: var(--space-4) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+}
+
+.nav-section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: var(--space-3) var(--space-3) var(--space-2);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 2px;
+  font-size: 13.5px; font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration) var(--ease-out);
+  position: relative;
+  user-select: none;
+  height: 36px;
+}
+.nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.nav-item.active {
+  background: var(--amber-glow);
+  color: var(--amber);
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: -12px; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 16px;
+  background: var(--amber);
+}
+.nav-item .icon {
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.nav-badge {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  line-height: 1.4;
+}
+
+.sidebar-footer {
+  padding: var(--space-4) var(--space-5);
+  border-top: var(--border-thin);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.sidebar-footer .avatar {
+  width: 32px; height: 32px;
+  border-radius: 2px;
+  background: var(--bg-hover);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-weight: 600; font-size: 13px;
+  color: var(--amber);
+}
+.sidebar-footer .user-info { flex: 1; min-width: 0; }
+.sidebar-footer .user-name {
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+}
+.sidebar-footer .user-role {
+  font-size: 11px; color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* --- Main --- */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-width: 0;
+}
+
+/* --- Topbar --- */
+.topbar {
+  position: sticky;
+  top: 0;
+  height: var(--topbar-h);
+  background: var(--bg-base);
+  border-bottom: var(--border-thin);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-8);
+  gap: var(--space-6);
+  z-index: 50;
+}
+
+.topbar .menu-toggle {
+  display: none;
+  background: none; border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: var(--space-1);
+  font-size: 20px;
+}
+
+.topbar-search {
+  flex: 1;
+  max-width: 360px;
+  position: relative;
+}
+.topbar-search input {
+  width: 100%;
+  height: 36px;
+  padding: 0 var(--space-3) 0 36px;
+  background: var(--bg-input);
+  border: var(--border-subtle);
+  border-radius: 2px;
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--duration) var(--ease-out);
+}
+.topbar-search input::placeholder { color: var(--text-muted); }
+.topbar-search input:focus { border-color: var(--amber); }
+.topbar-search .search-icon {
+  position: absolute;
+  left: var(--space-3); top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.topbar-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 2px;
+  font-size: 17px;
+  transition: all var(--duration) var(--ease-out);
+  position: relative;
+}
+.topbar-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.topbar-btn .dot {
+  position: absolute;
+  top: 7px; right: 7px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--danger);
+}
+
+/* --- Content --- */
+.content {
+  padding: var(--space-8);
+}
+
+.page {
+  display: none;
+  animation: fadeSlideIn 0.35s var(--ease-out);
+}
+.page.active { display: block; }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Page Header --- */
+.page-header {
+  margin-bottom: var(--space-8);
+}
+.page-header h2 {
+  font-size: 22px; font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  margin-bottom: var(--space-1);
+}
+.page-header p {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* ============================================
+   Stat Cards
+   ============================================ */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: var(--border-thin);
+  border-radius: 2px;
+  padding: var(--space-5);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s var(--ease-out);
+  animation: fadeSlideIn 0.4s var(--ease-out);
+  animation-fill-mode: both;
+}
+.stat-card:nth-child(1) { animation-delay: 0.00s; }
+.stat-card:nth-child(2) { animation-delay: 0.06s; }
+.stat-card:nth-child(3) { animation-delay: 0.12s; }
+.stat-card:nth-child(4) { animation-delay: 0.18s; }
+
+.stat-card:hover {
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 0 40px -10px rgba(232,168,64,0.08);
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 2px;
+  background: linear-gradient(90deg, var(--amber), var(--amber-dim));
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+}
+.stat-card:hover::after { opacity: 1; }
+
+.stat-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+.stat-card-label {
+  font-size: 11px; font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+}
+.stat-card-icon {
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+.stat-card-value {
+  font-family: var(--font-mono);
+  font-size: 28px; font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-3);
+}
+
+.stat-card-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+.stat-card-change.up { color: var(--success); background: var(--success-bg); }
+.stat-card-change.down { color: var(--danger); background: var(--danger-bg); }
+
+.stat-card-sparkline {
+  position: absolute;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  opacity: 0.18;
+}
+
+/* ============================================
+   Card component
+   ============================================ */
+.card {
+  background: var(--bg-card);
+  border: var(--border-thin);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.card-header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: var(--border-thin);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-header h3 {
+  font-size: 14px; font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+.card-body { padding: var(--space-5); }
+.card-body.no-padding { padding: 0; }
+
+/* ============================================
+   Buttons
+   ============================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 34px;
+  padding: 0 var(--space-4);
+  font-family: var(--font-ui);
+  font-size: 13px; font-weight: 500;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all var(--duration) var(--ease-out);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--amber);
+  color: #0D0F14;
+  border-color: var(--amber);
+}
+.btn-primary:hover { background: var(--amber-dim); }
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+}
+.btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+.btn-sm { height: 28px; padding: 0 var(--space-3); font-size: 12px; }
+.btn-xs {
+  height: 24px; padding: 0 var(--space-2); font-size: 11px;
+  font-family: var(--font-mono);
+}
+
+/* ============================================
+   Table
+   ============================================ */
+.table-wrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+thead th {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-align: left;
+  padding: var(--space-3) var(--space-5);
+  background: var(--bg-elevated);
+  border-bottom: var(--border-thin);
+  white-space: nowrap;
+}
+tbody td {
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+tbody tr {
+  transition: background var(--duration) var(--ease-out);
+}
+tbody tr:hover { background: var(--bg-hover); }
+tbody tr:hover td { color: var(--text-primary); }
+td.mono { font-family: var(--font-mono); font-size: 12px; }
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 500;
+  border-radius: 2px;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+}
+.badge-success { background: var(--success-bg); color: var(--success); }
+.badge-warning { background: var(--warning-bg); color: var(--warning); }
+.badge-danger { background: var(--danger-bg); color: var(--danger); }
+.badge-info { background: var(--info-bg); color: var(--info); }
+.badge-neutral { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+.badge-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* ============================================
+   Chart area
+   ============================================ */
+.chart-container {
+  width: 100%;
+  height: 280px;
+  position: relative;
+}
+.chart-container canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+/* ============================================
+   Form elements
+   ============================================ */
+.form-group {
+  margin-bottom: var(--space-5);
+}
+.form-group label {
+  display: block;
+  font-size: 12px; font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  font-family: var(--font-mono);
+  letter-spacing: 0.03em;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-input);
+  border: var(--border-subtle);
+  border-radius: 2px;
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--duration) var(--ease-out);
+  height: 36px;
+}
+.form-group textarea { height: 80px; resize: vertical; }
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--amber);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.settings-card {
+  background: var(--bg-card);
+  border: var(--border-thin);
+  border-radius: 2px;
+  padding: var(--space-6);
+  margin-bottom: var(--space-4);
+  transition: border-color 0.3s var(--ease-out);
+}
+.settings-card:hover { border-color: rgba(255,255,255,0.12); }
+.settings-card h4 {
+  font-size: 15px; font-weight: 600;
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+}
+.settings-card > p {
+  font-size: 12px; color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-bottom: var(--space-5);
+}
+
+/* ============================================
+   Toggle switch
+   ============================================ */
+.toggle {
+  display: flex; align-items: center; gap: var(--space-3); cursor: pointer;
+}
+.toggle input { display: none; }
+.toggle-track {
+  width: 36px; height: 20px;
+  background: rgba(255,255,255,0.10);
+  border-radius: 10px;
+  position: relative;
+  transition: background 0.2s var(--ease-out);
+}
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  transition: all 0.2s var(--ease-out);
+}
+.toggle input:checked + .toggle-track { background: var(--amber-dim); }
+.toggle input:checked + .toggle-track::after {
+  left: 19px;
+  background: var(--amber);
+}
+.toggle-label { font-size: 13px; color: var(--text-primary); }
+
+/* ============================================
+   Empty state
+   ============================================ */
+.empty-state {
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+}
+.empty-state .icon { font-size: 40px; margin-bottom: var(--space-4); opacity: 0.3; }
+.empty-state h4 { font-size: 15px; color: var(--text-secondary); margin-bottom: var(--space-2); }
+.empty-state p { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (max-width: 1200px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .topbar .menu-toggle { display: block; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .content { padding: var(--space-4); }
+  .topbar { padding: 0 var(--space-4); }
+  .form-row { grid-template-columns: 1fr; }
+  .topbar-search { max-width: 200px; }
+}
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr; }
+  .topbar-search { display: none; }
+}
+
+/* ============================================
+   Mobile overlay
+   ============================================ */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99;
+}
+.sidebar-overlay.show { display: block; }
+
+/* Metric label in chart area */
+.metric-row {
+  display: flex;
+  gap: var(--space-8);
+  margin-bottom: var(--space-4);
+}
+.metric-item .metric-value {
+  font-family: var(--font-mono);
+  font-size: 20px; font-weight: 600;
+  color: var(--text-primary);
+}
+.metric-item .metric-label {
+  font-family: var(--font-mono);
+  font-size: 10px; color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Activity dot pulse */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">C2</div>
+      <h1>指挥中心</h1>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">概览</div>
+      <div class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard', this)">
+        <span class="icon">⊞</span> 仪表盘
+      </div>
+      <div class="nav-item" data-page="analytics" onclick="navigateTo('analytics', this)">
+        <span class="icon">◈</span> 数据分析
+      </div>
+
+      <div class="nav-section-label" style="margin-top:8px">管理</div>
+      <div class="nav-item" data-page="orders" onclick="navigateTo('orders', this)">
+        <span class="icon">☰</span> 订单
+        <span class="nav-badge">12</span>
+      </div>
+      <div class="nav-item" data-page="products" onclick="navigateTo('products', this)">
+        <span class="icon">⬡</span> 产品
+      </div>
+      <div class="nav-item" data-page="users" onclick="navigateTo('users', this)">
+        <span class="icon">◉</span> 用户
+      </div>
+
+      <div class="nav-section-label" style="margin-top:8px">系统</div>
+      <div class="nav-item" data-page="settings" onclick="navigateTo('settings', this)">
+        <span class="icon">⚙</span> 设置
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="avatar">李</div>
+      <div class="user-info">
+        <div class="user-name">李四</div>
+        <div class="user-role">超级管理员</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+      <div class="topbar-search">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="搜索订单、用户、产品..." id="globalSearch">
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-btn" title="通知">⍇<span class="dot"></span></button>
+        <button class="topbar-btn" title="快捷键">⌘</button>
+      </div>
+    </header>
+
+    <!-- Content area -->
+    <div class="content">
+
+      <!-- ==================== DASHBOARD ==================== -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <h2>仪表盘</h2>
+          <p>系统状态 • 2026-05-18 09:42</p>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-label">总收入</span>
+              <span class="stat-card-icon">￥</span>
+            </div>
+            <div class="stat-card-value">¥847,290</div>
+            <span class="stat-card-change up">↑ 12.5%</span>
+            <svg class="stat-card-sparkline" width="80" height="30" viewBox="0 0 80 30">
+              <polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                points="0,22 8,20 16,18 24,15 32,12 40,14 48,8 56,6 64,7 72,3 80,5"
+                style="color: var(--success)"/>
+            </svg>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-label">活跃用户</span>
+              <span class="stat-card-icon">◉</span>
+            </div>
+            <div class="stat-card-value">2,847</div>
+            <span class="stat-card-change up">↑ 8.2%</span>
+            <svg class="stat-card-sparkline" width="80" height="30" viewBox="0 0 80 30">
+              <polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                points="0,18 10,14 20,12 30,12 40,8 50,6 60,10 70,5 80,3"
+                style="color: var(--cyan)"/>
+            </svg>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-label">Orders</span>
+              <span class="stat-card-icon">☰</span>
+            </div>
+            <div class="stat-card-value">1,423</div>
+            <span class="stat-card-change up">↑ 5.7%</span>
+            <svg class="stat-card-sparkline" width="80" height="30" viewBox="0 0 80 30">
+              <polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                points="0,15 10,16 20,12 30,9 40,13 50,7 60,4 70,6 80,2"
+                style="color: var(--amber)"/>
+            </svg>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-label">Conversion</span>
+              <span class="stat-card-icon">◈</span>
+            </div>
+            <div class="stat-card-value">3.24%</div>
+            <span class="stat-card-change down">↓ 0.4%</span>
+            <svg class="stat-card-sparkline" width="80" height="30" viewBox="0 0 80 30">
+              <polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                points="0,10 10,7 20,9 30,6 40,12 50,14 60,8 70,11 80,6"
+                style="color: var(--danger)"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Chart + Recent Orders -->
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-header">
+              <h3>Revenue Trend</h3>
+              <div style="display:flex;gap:4px">
+                <button class="btn btn-xs btn-ghost" style="background:var(--amber-glow);color:var(--amber)">7D</button>
+                <button class="btn btn-xs btn-ghost">30D</button>
+                <button class="btn btn-xs btn-ghost">12M</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="metric-row">
+                <div class="metric-item">
+                  <div class="metric-value">¥847.3K</div>
+                  <div class="metric-label">Total Revenue</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-value">¥12.4K</div>
+                  <div class="metric-label">Avg. Order</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-value">68</div>
+                  <div class="metric-label">Orders / Day</div>
+                </div>
+              </div>
+              <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>Recent Orders</h3>
+              <button class="btn btn-xs btn-ghost" onclick="navigateTo('orders', document.querySelector('[data-page=orders]'))">View All →</button>
+            </div>
+            <div class="card-body no-padding">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Status</th></tr>
+                  </thead>
+                  <tbody id="recentOrdersBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== ANALYTICS ==================== -->
+      <div class="page" id="page-analytics">
+        <div class="page-header">
+          <h2>Analytics</h2>
+          <p>ANALYTICS_ENGINE • Last updated: 2026-05-16 09:00</p>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-card-header"><span class="stat-card-label">Page Views</span></div>
+            <div class="stat-card-value">128,430</div>
+            <span class="stat-card-change up">↑ 18.3%</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-header"><span class="stat-card-label">Bounce Rate</span></div>
+            <div class="stat-card-value">32.1%</div>
+            <span class="stat-card-change down">↓ 2.1%</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-header"><span class="stat-card-label">Avg. Session</span></div>
+            <div class="stat-card-value">4m 32s</div>
+            <span class="stat-card-change up">↑ 11.2%</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-header"><span class="stat-card-label">Retention</span></div>
+            <div class="stat-card-value">67.8%</div>
+            <span class="stat-card-change up">↑ 3.1%</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:var(--space-8)">
+          <div class="card-header"><h3>Traffic Sources</h3></div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="trafficChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== ORDERS ==================== -->
+      <div class="page" id="page-orders">
+        <div class="page-header">
+          <h2>Orders</h2>
+          <p>ORDER_MANAGER • 1,423 total</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>All Orders</h3>
+            <div style="display:flex;gap:var(--space-2)">
+              <button class="btn btn-xs btn-ghost">Export CSV</button>
+              <button class="btn btn-xs btn-primary">+ New Order</button>
+            </div>
+          </div>
+          <div class="card-body no-padding">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Order ID</th><th>Customer</th><th>Product</th><th>Amount</th><th>Date</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody id="allOrdersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== PRODUCTS ==================== -->
+      <div class="page" id="page-products">
+        <div class="page-header">
+          <h2>Products</h2>
+          <p>CATALOG_MGR • 48 active products</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Product Catalog</h3>
+            <button class="btn btn-xs btn-primary">+ Add Product</button>
+          </div>
+          <div class="card-body no-padding">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>SKU</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th></tr>
+                </thead>
+                <tbody id="productsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== USERS ==================== -->
+      <div class="page" id="page-users">
+        <div class="page-header">
+          <h2>Users</h2>
+          <p>IDENTITY_MGR • 2,847 registered</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>User Directory</h3>
+            <button class="btn btn-xs btn-primary">+ Invite User</button>
+          </div>
+          <div class="card-body no-padding">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>User</th><th>Email</th><th>Role</th><th>Joined</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody id="usersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SETTINGS ==================== -->
+      <div class="page" id="page-settings">
+        <div class="page-header">
+          <h2>Settings</h2>
+          <p>SYSCONFIG • Environment: production</p>
+        </div>
+
+        <div class="settings-card">
+          <h4>General</h4>
+          <p>Core application settings</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Site Name</label>
+              <input type="text" value="Command Center">
+            </div>
+            <div class="form-group">
+              <label>Default Language</label>
+              <select>
+                <option>English</option>
+                <option selected>简体中文</option>
+                <option>日本語</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea>Industrial-grade SAAS management platform.</textarea>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <h4>Notifications</h4>
+          <p>Configure alert preferences</p>
+          <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+            <label class="toggle">
+              <input type="checkbox" checked>
+              <span class="toggle-track"></span>
+              <span class="toggle-label">Email alerts for new orders</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" checked>
+              <span class="toggle-track"></span>
+              <span class="toggle-label">Weekly analytics report</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox">
+              <span class="toggle-track"></span>
+              <span class="toggle-label">System health notifications</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" checked>
+              <span class="toggle-track"></span>
+              <span class="toggle-label">Failed login alerts</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <h4>Danger Zone</h4>
+          <p>Irreversible actions — proceed with caution</p>
+          <div style="display:flex;gap:var(--space-3);flex-wrap:wrap">
+            <button class="btn btn-ghost" style="color:var(--danger);border-color:rgba(248,113,113,0.3)">Reset All Data</button>
+            <button class="btn btn-ghost" style="color:var(--warning);border-color:rgba(251,191,36,0.3)">Export Database</button>
+            <button class="btn btn-ghost" style="color:var(--danger);border-color:rgba(248,113,113,0.3)">Delete Account</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+/* ============================================
+   Navigation
+   ============================================ */
+function navigateTo(pageName, el) {
+  // Update nav items
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  if (el) el.classList.add('active');
+
+  // Update pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + pageName);
+  if (target) target.classList.add('active');
+
+  // Close sidebar on mobile
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+  }
+
+  // Draw charts if needed
+  if (pageName === 'analytics') {
+    setTimeout(drawTrafficChart, 100);
+  }
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+/* ============================================
+   Data
+   ============================================ */
+const recentOrders = [
+  { id: '#ORD-2841', customer: 'Zhang Wei', amount: '¥1,280', status: 'completed' },
+  { id: '#ORD-2840', customer: 'Wang Fang', amount: '¥3,450', status: 'processing' },
+  { id: '#ORD-2839', customer: 'Liu Yang', amount: '¥890', status: 'completed' },
+  { id: '#ORD-2838', customer: 'Chen Jie', amount: '¥5,200', status: 'pending' },
+  { id: '#ORD-2837', customer: 'Huang Li', amount: '¥2,110', status: 'completed' },
+  { id: '#ORD-2836', customer: 'Zhao Ming', amount: '¥760', status: 'cancelled' },
+];
+
+const allOrders = [
+  ...recentOrders,
+  { id: '#ORD-2835', customer: 'Sun Hao', amount: '¥4,300', status: 'processing' },
+  { id: '#ORD-2834', customer: 'Ma Chao', amount: '¥1,650', status: 'completed' },
+  { id: '#ORD-2833', customer: 'Lin Xiao', amount: '¥9,800', status: 'completed' },
+  { id: '#ORD-2832', customer: 'Wu Gang', amount: '¥2,340', status: 'refunded' },
+  { id: '#ORD-2831', customer: 'Xu Jing', amount: '¥1,100', status: 'completed' },
+  { id: '#ORD-2830', customer: 'Zhou Tao', amount: '¥6,720', status: 'processing' },
+];
+
+const productsData = [
+  { sku: 'SKU-1001', name: 'Industrial Sensor X1', cat: 'Hardware', price: '¥2,800', stock: 142, status: 'active' },
+  { sku: 'SKU-1002', name: 'Data Pipeline Pro', cat: 'Software', price: '¥9,900', stock: 999, status: 'active' },
+  { sku: 'SKU-1003', name: 'Control Module v3', cat: 'Hardware', price: '¥4,500', stock: 28, status: 'low' },
+  { sku: 'SKU-1004', name: 'Analytics Suite', cat: 'Software', price: '¥15,000', stock: 999, status: 'active' },
+  { sku: 'SKU-1005', name: 'Thermal Array T2', cat: 'Hardware', price: '¥7,200', stock: 0, status: 'soldout' },
+  { sku: 'SKU-1006', name: 'API Gateway', cat: 'Service', price: '¥3,600', stock: 999, status: 'active' },
+];
+
+const usersData = [
+  { name: 'Zhang Wei', email: 'zhangwei@corp.cn', role: 'Admin', joined: '2025-03-12', status: 'active' },
+  { name: 'Wang Fang', email: 'wangfang@corp.cn', role: 'Manager', joined: '2025-06-24', status: 'active' },
+  { name: 'Liu Yang', email: 'liuyang@corp.cn', role: 'Editor', joined: '2025-09-08', status: 'active' },
+  { name: 'Chen Jie', email: 'chenjie@corp.cn', role: 'Viewer', joined: '2026-01-15', status: 'inactive' },
+  { name: 'Huang Li', email: 'huangli@corp.cn', role: 'Editor', joined: '2025-11-03', status: 'active' },
+  { name: 'Zhao Ming', email: 'zhaoming@corp.cn', role: 'Viewer', joined: '2026-02-28', status: 'active' },
+];
+
+/* ============================================
+   Render Helpers
+   ============================================ */
+function statusBadge(status) {
+  const map = {
+    completed: 'badge-success',
+    processing: 'badge-info',
+    pending: 'badge-warning',
+    cancelled: 'badge-danger',
+    refunded: 'badge-neutral',
+    active: 'badge-success',
+    inactive: 'badge-neutral',
+    low: 'badge-warning',
+    soldout: 'badge-danger',
+  };
+  return `<span class="badge ${map[status] || 'badge-neutral'}">${status.toUpperCase()}</span>`;
+}
+
+function renderOrderRow(o, showActions) {
+  const actions = showActions
+    ? `<td><button class="btn btn-xs btn-ghost" style="font-family:var(--font-mono)">VIEW</button></td>`
+    : '';
+  return `<tr>
+    <td class="mono" style="color:var(--amber)">${o.id}</td>
+    <td>${o.customer}</td>
+    <td>${o.product || '—'}</td>
+    <td class="mono">${o.amount}</td>
+    <td class="mono" style="font-size:11px;color:var(--text-muted)">${o.date || '2026-05-' + (10 + Math.floor(Math.random()*6))}</td>
+    <td>${statusBadge(o.status)}</td>
+    ${actions}
+  </tr>`;
+}
+
+/* ============================================
+   Populate Tables
+   ============================================ */
+document.getElementById('recentOrdersBody').innerHTML =
+  recentOrders.map(o => {
+    // Simplified row for recent orders widget
+    return `<tr>
+      <td class="mono" style="color:var(--amber)">${o.id}</td>
+      <td>${o.customer}</td>
+      <td class="mono">${o.amount}</td>
+      <td>${statusBadge(o.status)}</td>
+    </tr>`;
+  }).join('');
+
+document.getElementById('allOrdersBody').innerHTML =
+  allOrders.map(o => renderOrderRow(o, true)).join('');
+
+document.getElementById('productsBody').innerHTML =
+  productsData.map(p => `<tr>
+    <td class="mono" style="color:var(--text-muted)">${p.sku}</td>
+    <td style="font-weight:500;color:var(--text-primary)">${p.name}</td>
+    <td>${p.cat}</td>
+    <td class="mono">${p.price}</td>
+    <td class="mono">${p.stock}</td>
+    <td>${statusBadge(p.status)}</td>
+  </tr>`).join('');
+
+document.getElementById('usersBody').innerHTML =
+  usersData.map(u => `<tr>
+    <td>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;background:var(--bg-hover);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--amber)">${u.name.charAt(0)}</div>
+        <span style="font-weight:500;color:var(--text-primary)">${u.name}</span>
+      </div>
+    </td>
+    <td class="mono" style="font-size:12px">${u.email}</td>
+    <td>${u.role}</td>
+    <td class="mono" style="font-size:11px">${u.joined}</td>
+    <td><span style="display:flex;align-items:center;gap:6px"><span class="status-dot" style="background:${u.status === 'active' ? 'var(--success)' : 'var(--text-muted)'};animation:${u.status === 'active' ? 'pulse 2s infinite' : 'none'}"></span>${u.status}</span></td>
+    <td><button class="btn btn-xs btn-ghost" style="font-family:var(--font-mono)">EDIT</button></td>
+  </tr>`).join('');
+
+/* ============================================
+   Charts
+   ============================================ */
+function drawRevenueChart() {
+  const canvas = document.getElementById('revenueChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.scale(dpr, dpr);
+
+  const w = rect.width, h = rect.height;
+  const pad = { top: 20, right: 20, bottom: 30, left: 50 };
+  const pw = w - pad.left - pad.right;
+  const ph = h - pad.top - pad.bottom;
+
+  // Data
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const values = [420, 380, 510, 460, 580, 630, 590, 720, 680, 790, 810, 847];
+  const maxVal = Math.max(...values) * 1.15;
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (ph / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(w - pad.right, y);
+    ctx.stroke();
+
+    // Labels
+    const label = Math.round(maxVal - (maxVal / 4) * i);
+    ctx.fillStyle = '#5A6070';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('¥' + label + 'K', pad.left - 8, y + 3);
+  }
+
+  // Draw filled area + line
+  const stepX = pw / (values.length - 1);
+  const points = values.map((v, i) => ({
+    x: pad.left + stepX * i,
+    y: pad.top + ph - (v / maxVal) * ph,
+  }));
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ph);
+  grad.addColorStop(0, 'rgba(232,168,64,0.18)');
+  grad.addColorStop(0.6, 'rgba(232,168,64,0.03)');
+  grad.addColorStop(1, 'rgba(232,168,64,0)');
+
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, pad.top + ph);
+  points.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(points[points.length - 1].x, pad.top + ph);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+  for (let i = 1; i < points.length; i++) {
+    const cp1x = points[i - 1].x + stepX * 0.4;
+    const cp2x = points[i].x - stepX * 0.4;
+    ctx.bezierCurveTo(cp1x, points[i - 1].y, cp2x, points[i].y, points[i].x, points[i].y);
+  }
+  ctx.strokeStyle = '#E8A840';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Data points
+  points.forEach((p, i) => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#E8A840';
+    ctx.fill();
+
+    // Month labels
+    ctx.fillStyle = '#5A6070';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(months[i], p.x, pad.top + ph + 18);
+  });
+}
+
+function drawTrafficChart() {
+  const canvas = document.getElementById('trafficChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.scale(dpr, dpr);
+
+  const w = rect.width, h = rect.height;
+  const pad = { top: 20, right: 20, bottom: 30, left: 50 };
+  const pw = w - pad.left - pad.right;
+  const ph = h - pad.top - pad.bottom;
+
+  const labels = ['00:00','02:00','04:00','06:00','08:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00'];
+  const organic = [30, 15, 8, 12, 45, 80, 95, 70, 60, 85, 75, 50];
+  const direct = [20, 10, 5, 8, 30, 55, 65, 50, 40, 55, 50, 35];
+  const referral = [10, 5, 3, 5, 15, 25, 30, 20, 18, 28, 22, 15];
+  const maxVal = 110;
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (ph / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(w - pad.right, y);
+    ctx.stroke();
+
+    ctx.fillStyle = '#5A6070';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.round(maxVal - (maxVal / 4) * i), pad.left - 8, y + 3);
+  }
+
+  const stepX = pw / (labels.length - 1);
+
+  function drawSeries(data, color) {
+    const pts = data.map((v, i) => ({
+      x: pad.left + stepX * i,
+      y: pad.top + ph - (v / maxVal) * ph,
+    }));
+
+    const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ph);
+    grad.addColorStop(0, color.replace('1)', '0.18)'));
+    grad.addColorStop(1, color.replace('1)', '0)'));
+
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pad.top + ph);
+    pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.lineTo(pts[pts.length - 1].x, pad.top + ph);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      ctx.bezierCurveTo(pts[i-1].x + stepX*0.4, pts[i-1].y, pts[i].x - stepX*0.4, pts[i].y, pts[i].x, pts[i].y);
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  drawSeries(organic, 'rgba(232,168,64,1)');
+  drawSeries(direct, 'rgba(34,211,238,1)');
+  drawSeries(referral, 'rgba(96,165,250,1)');
+
+  // X labels
+  ctx.fillStyle = '#5A6070';
+  ctx.font = '9px "JetBrains Mono", monospace';
+  ctx.textAlign = 'center';
+  for (let i = 0; i < labels.length; i += 2) {
+    ctx.fillText(labels[i], pad.left + stepX * i, pad.top + ph + 18);
+  }
+
+  // Legend
+  const legendY = pad.top - 4;
+  const legends = [
+    { label: 'Organic', color: 'rgba(232,168,64,1)' },
+    { label: 'Direct', color: 'rgba(34,211,238,1)' },
+    { label: 'Referral', color: 'rgba(96,165,250,1)' },
+  ];
+  let lx = w - pad.right - 180;
+  legends.forEach(l => {
+    ctx.fillStyle = l.color;
+    ctx.fillRect(lx, legendY, 8, 8);
+    ctx.fillStyle = '#8B919E';
+    ctx.font = '11px "Barlow", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(l.label, lx + 14, legendY + 8);
+    lx += 70;
+  });
+}
+
+/* ============================================
+   Initialize
+   ============================================ */
+drawRevenueChart();
+
+window.addEventListener('resize', () => {
+  drawRevenueChart();
+  if (document.getElementById('page-analytics').classList.contains('active')) {
+    drawTrafficChart();
+  }
+});
+
+/* Global search handler */
+document.getElementById('globalSearch').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && this.value.trim()) {
+    const q = this.value.toLowerCase();
+    if (q.includes('order') || q.includes('ord')) {
+      navigateTo('orders', document.querySelector('[data-page=orders]'));
+    } else if (q.includes('user')) {
+      navigateTo('users', document.querySelector('[data-page=users]'));
+    } else if (q.includes('product')) {
+      navigateTo('products', document.querySelector('[data-page=products]'));
+    } else if (q.includes('setting')) {
+      navigateTo('settings', document.querySelector('[data-page=settings]'));
+    }
+  }
+});
+
+/* Keyboard shortcut: Ctrl+K for search focus */
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('globalSearch').focus();
+  }
+});
+</script>
+
+</body>
+</html>
