@@ -170,6 +170,11 @@ export const useAdminStore = defineStore('admin', {
       return res.data
     },
 
+    async fetchUnreadCount() {
+      const res = await api.get('/admin/chat/unread-count')
+      return res.data
+    },
+
     // ========== 评价管理 ==========
 
     async fetchRatings(params = {}) {

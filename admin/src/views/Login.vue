@@ -96,7 +96,7 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #0A0A0B;
+  background-color: #F4F6FA;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
@@ -106,10 +106,10 @@ async function handleLogin() {
 .login-card {
   width: 400px;
   padding: 0;
-  background: #121216;
-  border: 1px solid #1C1C21;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
-  box-shadow: 0 0 60px rgba(16, 185, 129, 0.06), 0 20px 60px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 60px rgba(37, 99, 235, 0.06), 0 20px 60px rgba(0, 0, 0, 0.4);
   overflow: hidden;
 }
 
@@ -118,8 +118,8 @@ async function handleLogin() {
   align-items: center;
   gap: 6px;
   padding: 12px 20px;
-  background: #0C0C10;
-  border-bottom: 1px solid #1C1C21;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .dot {
@@ -130,13 +130,13 @@ async function handleLogin() {
 
 .dot-red { background: #EF4444; }
 .dot-yellow { background: #F59E0B; }
-.dot-green { background: #10B981; }
+.dot-green { background: #2563EB; }
 
 .terminal-label {
   margin-left: 12px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #52525B;
+  color: #64748B;
 }
 
 .login-header {
@@ -148,7 +148,7 @@ async function handleLogin() {
 .login-title {
   font-size: 20px;
   font-weight: 700;
-  color: #10B981;
+  color: #2563EB;
   margin: 0;
   font-family: 'JetBrains Mono', monospace;
   letter-spacing: 1px;
@@ -156,7 +156,7 @@ async function handleLogin() {
 
 .login-subtitle {
   font-size: 13px;
-  color: #6B6B78;
+  color: #64748B;
   margin: 8px 0 0;
 }
 
@@ -165,32 +165,32 @@ async function handleLogin() {
 }
 
 :deep(.el-input__wrapper) {
-  background: #0C0C10;
-  border-color: #1C1C21;
+  background: #F8FAFC;
+  border-color: #E2E8F0;
   box-shadow: none;
 }
 
 :deep(.el-input__wrapper:hover) {
-  border-color: #25252D;
+  border-color: #E2E8F0;
 }
 
 :deep(.el-input__wrapper.is-focus) {
-  border-color: #10B981;
-  box-shadow: 0 0 0 1px #10B981;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 1px #2563EB;
 }
 
 :deep(.el-input__inner) {
-  color: #E4E4E7;
+  color: #1E293B;
 }
 
 :deep(.el-input__inner::placeholder) {
-  color: #52525B;
+  color: #64748B;
 }
 
 .login-hint {
   text-align: center;
   font-size: 12px;
-  color: #3F3F46;
+  color: #94A3B8;
   margin: 0 0 24px;
 }
 </style>

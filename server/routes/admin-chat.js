@@ -409,6 +409,20 @@ router.get('/agent/status', (req, res) => {
   }
 })
 
+// GET /api/admin/chat/unread-count — 新消息未读总数
+router.get('/unread-count', (req, res) => {
+  try {
+    const db = getDatabase()
+    const row = db.prepare(
+      "SELECT COUNT(*) AS cnt FROM chat_messages WHERE sender_type = 'user' AND is_read = 0"
+    ).get()
+    res.success({ total_unread: row.cnt }, 'ok')
+  } catch (e) {
+    console.error('获取未读数失败:', e)
+    res.fail('获取未读数失败', 500)
+  }
+})
+
 // ========== 离线留言管理 ==========
 
 // GET /api/admin/chat/offline-messages

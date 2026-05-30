@@ -92,7 +92,7 @@ function doSearch() {
 
 <style scoped>
 .site-header {
-  background: rgba(255, 253, 247, 0.97);
+  background: rgba(255, 255, 255, 0.92);
   border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;

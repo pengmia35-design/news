@@ -27,11 +27,15 @@ export default {
           DEFAULT: 'var(--color-card)',
           foreground: 'var(--color-card-foreground)',
         },
+        accent: {
+          DEFAULT: 'var(--color-accent-foreground)',
+        },
         border: 'var(--color-border)',
+        ring: 'var(--color-ring)',
       },
       fontFamily: {
         sans: ['"DM Sans"', '"Noto Sans SC"', '"PingFang SC"', '"Microsoft YaHei"', 'system-ui', 'sans-serif'],
-        display: ['"DM Serif Display"', '"Noto Serif SC"', 'serif'],
+        display: ['"DM Sans"', '"Noto Sans SC"', '"PingFang SC"', 'sans-serif'],
         mono: ['"JetBrains Mono"', '"Fira Code"', 'monospace'],
       },
       spacing: {
@@ -45,6 +49,9 @@ export default {
       boxShadow: {
         'card': 'var(--card-shadow)',
         'card-hover': 'var(--card-shadow-hover)',
+        'glow': 'var(--glow-primary)',
+        'glow-cyan': 'var(--glow-cyan)',
+        'glow-violet': 'var(--glow-violet)',
       },
     },
   },

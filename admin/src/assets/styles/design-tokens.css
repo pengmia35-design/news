@@ -1,46 +1,43 @@
 /* ========================================
-   TechAI Admin - 设计令牌系统
-   "Dark Precision" — 暗色精准终端风格
-   主色: True Black + Emerald Green
+   TechAI Admin — 蓝白轻科技 设计令牌系统
+   Light Tech — 深侧栏 + 浅内容区
    ======================================== */
 
 /* 原始令牌 - 基础色板 */
 :root {
-  /* Dark 暗色系 */
-  --color-dark-950: #050508;
-  --color-dark-900: #0A0A0B;
-  --color-dark-800: #0F0F12;
-  --color-dark-700: #141418;
-  --color-dark-600: #1C1C21;
-  --color-dark-500: #25252D;
-  --color-dark-400: #2D2D38;
-  --color-dark-300: #3A3A48;
-  --color-dark-200: #52525E;
-  --color-dark-100: #6B6B78;
+  /* Blue 蓝 (主色) */
+  --color-blue-50: #EFF6FF;
+  --color-blue-100: #DBEAFE;
+  --color-blue-200: #BFDBFE;
+  --color-blue-300: #93C5FD;
+  --color-blue-400: #60A5FA;
+  --color-blue-500: #3B82F6;
+  --color-blue-600: #2563EB;
+  --color-blue-700: #1D4ED8;
+  --color-blue-800: #1E40AF;
+  --color-blue-900: #1E3A8A;
 
-  /* Emerald 翠绿 (主色) */
-  --color-emerald-50: #ECFDF5;
-  --color-emerald-100: #D1FAE5;
-  --color-emerald-200: #A7F3D0;
-  --color-emerald-300: #6EE7B7;
-  --color-emerald-400: #34D399;
-  --color-emerald-500: #10B981;
-  --color-emerald-600: #059669;
-  --color-emerald-700: #047857;
-  --color-emerald-800: #065F46;
-  --color-emerald-900: #064E3B;
+  /* Cyan 青 (强调色) */
+  --color-cyan-400: #22D3EE;
+  --color-cyan-500: #06B6D4;
+  --color-cyan-600: #0891B2;
 
-  /* 暖灰色系 */
-  --color-gray-50: #FAFAFA;
-  --color-gray-100: #F4F4F5;
-  --color-gray-200: #E4E4E7;
-  --color-gray-300: #D4D4D8;
-  --color-gray-400: #A1A1AA;
-  --color-gray-500: #71717A;
-  --color-gray-600: #52525B;
-  --color-gray-700: #3F3F46;
-  --color-gray-800: #27272A;
-  --color-gray-900: #18181B;
+  /* Violet 紫 (辅助) */
+  --color-violet-400: #A78BFA;
+  --color-violet-500: #8B5CF6;
+  --color-violet-600: #7C3AED;
+
+  /* 中性灰 */
+  --color-gray-50: #F8FAFC;
+  --color-gray-100: #F1F5F9;
+  --color-gray-200: #E2E8F0;
+  --color-gray-300: #CBD5E1;
+  --color-gray-400: #94A3B8;
+  --color-gray-500: #64748B;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1E293B;
+  --color-gray-900: #0F172A;
 
   /* 语义色 */
   --color-success: #10B981;
@@ -49,38 +46,44 @@
   --color-info: #3B82F6;
 }
 
-/* 语义令牌 — 永久暗模式 */
+/* 语义令牌 — 默认浅色主题 */
 :root {
-  --color-background: #0A0A0B;
-  --color-foreground: #E4E4E7;
+  --color-background: #F4F6FA;
+  --color-foreground: #1E293B;
 
-  --color-card: #141418;
-  --color-card-foreground: #E4E4E7;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1E293B;
 
-  --color-primary: #10B981;
-  --color-primary-hover: #059669;
-  --color-primary-active: #047857;
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-active: #1E40AF;
   --color-primary-foreground: #FFFFFF;
 
-  --color-secondary: #1C1C21;
-  --color-secondary-foreground: #E4E4E7;
+  --color-secondary: #F1F5F9;
+  --color-secondary-foreground: #1E293B;
 
-  --color-muted: #1C1C21;
-  --color-muted-foreground: #6B6B78;
+  --color-muted: #F1F5F9;
+  --color-muted-foreground: #64748B;
 
-  --color-accent: #064E3B;
-  --color-accent-foreground: #34D399;
+  --color-accent: #EFF6FF;
+  --color-accent-foreground: #2563EB;
 
-  --color-border: #25252D;
-  --color-input: #25252D;
-  --color-ring: #10B981;
+  --color-border: #E2E8F0;
+  --color-input: #E2E8F0;
+  --color-ring: #3B82F6;
+}
+
+/* 辉光令牌 */
+:root {
+  --glow-primary: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  --glow-cyan: 0 0 0 3px rgba(6, 182, 212, 0.12);
 }
 
 /* 组件令牌 - 卡片 */
 :root {
   --card-radius: 8px;
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --card-shadow-hover: 0 4px 16px rgba(16, 185, 129, 0.06);
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
   --card-padding: 24px;
   --card-gap: 16px;
 }
@@ -125,7 +128,7 @@
   --leading-relaxed: 1.75;
 }
 
-/* 圆角 — 锐利风格 */
+/* 圆角 */
 :root {
   --radius-sm: 2px;
   --radius-md: 4px;
@@ -136,9 +139,9 @@
 
 /* 阴影 */
 :root {
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 /* 过渡动画 */

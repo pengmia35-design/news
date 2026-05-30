@@ -10,9 +10,9 @@
         :default-active="activeMenu"
         router
         class="admin-menu"
-        background-color="#0C0C10"
-        text-color="#6B6B78"
-        active-text-color="#10B981"
+        background-color="#0F172A"
+        text-color="#94A3B8"
+        active-text-color="#60A5FA"
       >
         <el-menu-item index="/">
           <el-icon><DataBoard /></el-icon>
@@ -123,9 +123,9 @@ function handleLogout() {
 
 <style scoped>
 .admin-aside {
-  background: #0C0C10;
+  background: #0F172A;
   overflow-y: auto;
-  border-right: 1px solid #1C1C21;
+  border-right: 1px solid #1E293B;
 }
 
 .aside-header {
@@ -133,13 +133,13 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid #1C1C21;
+  border-bottom: 1px solid #1E293B;
 }
 
 .aside-logo {
   font-size: 18px;
   font-weight: 700;
-  color: #10B981;
+  color: #60A5FA;
   text-decoration: none;
   letter-spacing: 1px;
   font-family: 'JetBrains Mono', monospace;
@@ -149,15 +149,15 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #0F0F12;
-  border-bottom: 1px solid #1C1C21;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
   padding: 0 24px;
 }
 
 .header-title {
   font-size: 16px;
   font-weight: 600;
-  color: #E4E4E7;
+  color: #1E293B;
 }
 
 .header-right {
@@ -168,11 +168,11 @@ function handleLogout() {
 
 .admin-name {
   font-size: 14px;
-  color: #6B6B78;
+  color: #64748B;
 }
 
 .admin-main {
-  background: #0A0A0B;
+  background: #F4F6FA;
   padding: 24px;
 }
 

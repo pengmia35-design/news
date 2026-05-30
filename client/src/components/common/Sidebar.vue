@@ -88,7 +88,7 @@ function formatDate(dateStr) {
   color: var(--color-foreground);
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid var(--color-accent-foreground);
+  border-bottom: 2px solid var(--color-primary);
 }
 
 /* 热门列表 */
@@ -125,7 +125,7 @@ function formatDate(dateStr) {
 }
 
 .hot-rank.top {
-  background: var(--color-ink-700);
+  background: var(--color-primary);
   color: #fff;
 }
 

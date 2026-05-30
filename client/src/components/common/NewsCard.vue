@@ -77,8 +77,8 @@ function formatDate(dateStr) {
 .featured-badge {
   font-size: 11px;
   font-weight: 600;
+  background: var(--color-primary);
   color: #fff;
-  background: #D97706;
   padding: 2px 8px;
   border-radius: 4px;
 }
@@ -86,7 +86,7 @@ function formatDate(dateStr) {
 .card-title {
   font-size: 20px;
   font-weight: 600;
-  font-family: 'DM Serif Display', 'Noto Serif SC', serif;
+  font-family: 'DM Sans', 'Noto Sans SC', 'PingFang SC', sans-serif;
   color: var(--color-card-foreground);
   line-height: 1.35;
   margin: 0 0 8px;
@@ -99,7 +99,7 @@ function formatDate(dateStr) {
 
 .news-card:hover .card-title {
   text-decoration: underline;
-  text-decoration-color: var(--color-accent-foreground);
+  text-decoration-color: var(--color-primary);
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
 }

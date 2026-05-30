@@ -210,7 +210,7 @@ async function handleSubmit() {
 .page-header h2 {
   font-size: 20px;
   font-weight: 600;
-  color: #1E293B;
+  color: var(--color-foreground);
   margin: 0;
 }
 

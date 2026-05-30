@@ -53,7 +53,7 @@
             <el-input v-model="filters.keyword" placeholder="搜索用户名/ID" size="small" clearable @input="fetchList" style="margin-bottom: 12px" />
 
             <div v-loading="loading" class="conv-items">
-              <div v-if="list.length === 0" style="text-align:center;color:#6B6B78;padding:40px 0">暂无对话</div>
+              <div v-if="list.length === 0" style="text-align:center;color:#64748B;padding:40px 0">暂无对话</div>
               <div
                 v-for="c in list"
                 :key="c.id"
@@ -110,7 +110,7 @@
             </template>
 
             <div class="msg-area" ref="msgArea">
-              <div v-if="messages.length === 0" style="text-align:center;color:#6B6B78;padding:60px 0">暂无消息</div>
+              <div v-if="messages.length === 0" style="text-align:center;color:#64748B;padding:60px 0">暂无消息</div>
               <div
                 v-for="m in messages"
                 :key="m.id"
@@ -134,7 +134,7 @@
                   <strong>{{ qr.title }}</strong>
                   <span>{{ qr.content.substring(0, 40) }}...</span>
                 </div>
-                <div v-if="quickReplies.length === 0" style="color:#6B6B78;text-align:center">暂无可用的快捷回复</div>
+                <div v-if="quickReplies.length === 0" style="color:#64748B;text-align:center">暂无可用的快捷回复</div>
               </el-popover>
               <el-input
                 v-model="replyText"
@@ -148,7 +148,7 @@
           </el-card>
 
           <el-card shadow="never" v-else class="empty-card">
-            <div style="text-align:center;color:#6B6B78;padding:80px 0">
+            <div style="text-align:center;color:#64748B;padding:80px 0">
               <el-icon :size="48"><ChatDotRound /></el-icon>
               <p style="margin-top:16px">选择左侧对话开始接待</p>
             </div>
@@ -161,7 +161,7 @@
     <div v-else class="offline-tab">
       <el-card shadow="never">
         <div v-loading="offlineLoading" class="offline-table-wrap">
-          <div v-if="offlineList.length === 0 && !offlineLoading" style="text-align:center;color:#6B6B78;padding:60px 0">
+          <div v-if="offlineList.length === 0 && !offlineLoading" style="text-align:center;color:#64748B;padding:60px 0">
             <el-icon :size="40"><Message /></el-icon>
             <p style="margin-top:12px">暂无离线留言</p>
           </div>
@@ -215,6 +215,60 @@ import { ElMessage, ElNotification, ElMessageBox } from 'element-plus'
 
 const adminStore = useAdminStore()
 
+// 新消息通知
+const prevUnread = ref(0)
+let unreadTimer = null
+let audioCtx = null
+
+function playNotificationSound() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+    const osc = audioCtx.createOscillator()
+    const gain = audioCtx.createGain()
+    osc.connect(gain)
+    gain.connect(audioCtx.destination)
+    osc.type = 'sine'
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3)
+    // 双音调通知声
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime)
+    osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1)
+    osc.start(audioCtx.currentTime)
+    osc.stop(audioCtx.currentTime + 0.3)
+  } catch (e) { /* 忽略音频错误 */ }
+}
+
+function notifyNewMessage(count) {
+  // 浏览器桌面通知
+  if (Notification.permission === 'granted') {
+    new Notification('新消息提醒', {
+      body: `有 ${count} 条新消息等待处理`,
+      icon: '/favicon.ico',
+      tag: 'chat-new-msg'
+    })
+  } else if (Notification.permission === 'default') {
+    Notification.requestPermission().then(p => {
+      if (p === 'granted') notifyNewMessage(count)
+    })
+  }
+  playNotificationSound()
+}
+
+async function checkUnreadMessages() {
+  try {
+    const res = await adminStore.fetchUnreadCount()
+    if (res.code === 200) {
+      const current = res.data.total_unread
+      if (current > prevUnread.value && prevUnread.value > 0) {
+        notifyNewMessage(current - prevUnread.value)
+        // 刷新对话列表以显示新消息
+        fetchList()
+      }
+      prevUnread.value = current
+    }
+  } catch (e) { /* silent */ }
+}
+
 const loading = ref(false)
 const list = ref([])
 const total = ref(0)
@@ -247,12 +301,18 @@ onMounted(async () => {
   fetchList()
   initAgentStatus()
   checkPendingOffline()
+  checkUnreadMessages()
   // 每 60 秒轮询 agent 状态
   statusPollTimer = setInterval(checkPendingOffline, 60000)
+  // 每 10 秒轮询新消息
+  unreadTimer = setInterval(checkUnreadMessages, 10000)
+  // 请求通知权限
+  if (Notification.permission === 'default') Notification.requestPermission()
 })
 
 onUnmounted(() => {
   if (statusPollTimer) clearInterval(statusPollTimer)
+  if (unreadTimer) clearInterval(unreadTimer)
 })
 
 async function initAgentStatus() {
@@ -469,13 +529,13 @@ function formatTime(t) {
   justify-content: space-between;
   align-items: center;
   padding: 10px 16px;
-  background: #141418;
-  border-bottom: 1px solid #1C1C21;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
   margin-bottom: 0;
 }
 .toolbar-label {
   font-size: 13px;
-  color: #6B6B78;
+  color: #64748B;
   margin-right: 4px;
 }
 .toolbar-left {
@@ -486,8 +546,8 @@ function formatTime(t) {
 /* Tabs */
 .mgmt-tabs {
   padding: 0 16px;
-  background: #141418;
-  border-bottom: 1px solid #1C1C21;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
 }
 .offline-badge-tab {
   display: inline-block;
@@ -508,32 +568,32 @@ function formatTime(t) {
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 .conv-items { flex: 1; overflow-y: auto; }
 
-.conv-item { padding: 12px; border: 1px solid #25252D; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
-.conv-item:hover { border-color: #10B981; }
-.conv-item.active { border-color: #10B981; background: rgba(16, 185, 129, 0.08); }
-.conv-item.unread { border-left: 3px solid #10B981; }
+.conv-item { padding: 12px; border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+.conv-item:hover { border-color: #2563EB; }
+.conv-item.active { border-color: #2563EB; background: rgba(37, 99, 235, 0.08); }
+.conv-item.unread { border-left: 3px solid #2563EB; }
 .ci-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.ci-user { font-weight: 600; font-size: 14px; color: #E4E4E7; }
-.ci-tag { font-size: 12px; color: #34D399; background: rgba(16, 185, 129, 0.12); display: inline-block; padding: 1px 8px; border-radius: 4px; margin: 4px 0; }
-.ci-msg { font-size: 12px; color: #6B6B78; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ci-time { font-size: 11px; color: #52525B; text-align: right; }
+.ci-user { font-weight: 600; font-size: 14px; color: #1E293B; }
+.ci-tag { font-size: 12px; color: #3B82F6; background: rgba(37, 99, 235, 0.12); display: inline-block; padding: 1px 8px; border-radius: 4px; margin: 4px 0; }
+.ci-msg { font-size: 12px; color: #64748B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ci-time { font-size: 11px; color: #64748B; text-align: right; }
 
 .chat-header { display: flex; justify-content: space-between; align-items: center; }
 .ch-left { display: flex; align-items: center; }
-.msg-area { flex: 1; overflow-y: auto; padding: 12px; background: #0F0F12; }
+.msg-area { flex: 1; overflow-y: auto; padding: 12px; background: #F8FAFC; }
 .msg-row { margin-bottom: 16px; }
 .msg-left { text-align: left; }
 .msg-right { text-align: right; }
 .msg-bubble { display: inline-block; max-width: 70%; padding: 8px 14px; border-radius: 12px; text-align: left; }
-.bubble-user { background: #1C1C21; border: 1px solid #25252D; color: #E4E4E7; }
-.bubble-agent { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #E4E4E7; }
-.msg-time { font-size: 10px; color: #52525B; margin-top: 4px; }
-.chat-input-area { display: flex; align-items: center; padding: 12px 0 0; border-top: 1px solid #1C1C21; margin-top: 12px; }
-.closed-notice { text-align: center; color: #6B6B78; padding: 12px 0 0; }
+.bubble-user { background: #E2E8F0; border: 1px solid #E2E8F0; color: #1E293B; }
+.bubble-agent { background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.2); color: #1E293B; }
+.msg-time { font-size: 10px; color: #64748B; margin-top: 4px; }
+.chat-input-area { display: flex; align-items: center; padding: 12px 0 0; border-top: 1px solid #E2E8F0; margin-top: 12px; }
+.closed-notice { text-align: center; color: #64748B; padding: 12px 0 0; }
 .qr-item { padding: 8px; border-radius: 6px; cursor: pointer; margin-bottom: 4px; display: flex; flex-direction: column; gap: 2px; }
-.qr-item:hover { background: #1C1C21; }
-.qr-item strong { font-size: 13px; color: #E4E4E7; }
-.qr-item span { font-size: 12px; color: #6B6B78; }
+.qr-item:hover { background: #E2E8F0; }
+.qr-item strong { font-size: 13px; color: #1E293B; }
+.qr-item span { font-size: 12px; color: #64748B; }
 
 /* Offline tab */
 .offline-tab { padding-top: 8px; }

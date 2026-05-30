@@ -170,11 +170,11 @@ function formatDate(t) {
 <style scoped>
 .rating-mgmt { height: 100%; }
 .stat-card { text-align: center; padding: 12px 0; }
-.stat-num { font-size: 32px; font-weight: 700; color: #10B981; display: block; font-family: 'JetBrains Mono', monospace; }
-.stat-label { font-size: 13px; color: #6B6B78; margin-top: 4px; display: block; }
+.stat-num { font-size: 32px; font-weight: 700; color: #2563EB; display: block; font-family: 'JetBrains Mono', monospace; }
+.stat-label { font-size: 13px; color: #64748B; margin-top: 4px; display: block; }
 .dist-bars { padding: 8px 0; }
-.dist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; color: #E4E4E7; }
-.dist-bar-bg { flex: 1; height: 12px; background: #1C1C21; border-radius: 6px; overflow: hidden; }
+.dist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; color: #1E293B; }
+.dist-bar-bg { flex: 1; height: 12px; background: #E2E8F0; border-radius: 6px; overflow: hidden; }
 .dist-bar-fill { height: 100%; background: #F59E0B; border-radius: 6px; transition: width 0.5s; }
 .toolbar { display: flex; align-items: center; }
 </style>

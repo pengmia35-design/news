@@ -1,93 +1,104 @@
 /* ========================================
-   TechAI 资讯 - 设计令牌系统
-   "Refined Tech Editorial" — 暖色调杂志风格
-   主色: Ink Navy + Warm Cream + Amber Gold
+   TechAI — 蓝白轻科技 设计令牌系统
+   Light Tech — 白底 + 蓝色点缀 + 干净阴影
    ======================================== */
 
 /* 原始令牌 - 基础色板 */
 :root {
-  /* Ink 深色系 (替代蓝) */
-  --color-ink-50: #F4F4F6;
-  --color-ink-100: #E4E4EA;
-  --color-ink-200: #C5C5D2;
-  --color-ink-300: #9D9DB5;
-  --color-ink-400: #6E6E8B;
-  --color-ink-500: #4A4A65;
-  --color-ink-600: #2D2D45;
-  --color-ink-700: #1A1A2E;
-  --color-ink-800: #111128;
-  --color-ink-900: #0A0A1E;
-  --color-ink-950: #050515;
+  /* Blue 蓝 (主色) */
+  --color-blue-50: #EFF6FF;
+  --color-blue-100: #DBEAFE;
+  --color-blue-200: #BFDBFE;
+  --color-blue-300: #93C5FD;
+  --color-blue-400: #60A5FA;
+  --color-blue-500: #3B82F6;
+  --color-blue-600: #2563EB;
+  --color-blue-700: #1D4ED8;
+  --color-blue-800: #1E40AF;
+  --color-blue-900: #1E3A8A;
 
-  /* Cream 暖白系 */
-  --color-cream-50: #FFFEF9;
-  --color-cream-100: #FFFDF2;
-  --color-cream-200: #FFF9E6;
-  --color-cream-300: #FFF3D6;
+  /* Cyan 青 (强调色) */
+  --color-cyan-50: #ECFEFF;
+  --color-cyan-100: #CFFAFE;
+  --color-cyan-200: #A5F3FC;
+  --color-cyan-300: #67E8F9;
+  --color-cyan-400: #22D3EE;
+  --color-cyan-500: #06B6D4;
+  --color-cyan-600: #0891B2;
+  --color-cyan-700: #0E7490;
+  --color-cyan-800: #155E75;
+  --color-cyan-900: #164E63;
 
-  /* Amber 金琥珀 (强调色) */
-  --color-amber-50: #FFFBEB;
-  --color-amber-100: #FEF3C7;
-  --color-amber-200: #FDE68A;
-  --color-amber-300: #FCD34D;
-  --color-amber-400: #FBBF24;
-  --color-amber-500: #F59E0B;
-  --color-amber-600: #D97706;
-  --color-amber-700: #B45309;
-  --color-amber-800: #92400E;
-  --color-amber-900: #78350F;
+  /* Violet 紫 (辅助强调) */
+  --color-violet-50: #F5F3FF;
+  --color-violet-100: #EDE9FE;
+  --color-violet-200: #DDD6FE;
+  --color-violet-300: #C4B5FD;
+  --color-violet-400: #A78BFA;
+  --color-violet-500: #8B5CF6;
+  --color-violet-600: #7C3AED;
+  --color-violet-700: #6D28D9;
+  --color-violet-800: #5B21B6;
+  --color-violet-900: #4C1D95;
 
-  /* 灰色系 (暖灰) */
-  --color-gray-50: #FAFAFA;
-  --color-gray-100: #F5F5F4;
-  --color-gray-200: #E7E5E4;
-  --color-gray-300: #D6D3D1;
-  --color-gray-400: #A8A29E;
-  --color-gray-500: #78716C;
-  --color-gray-600: #57534E;
-  --color-gray-700: #44403C;
-  --color-gray-800: #292524;
-  --color-gray-900: #1C1917;
+  /* 中性灰 */
+  --color-gray-50: #F8FAFC;
+  --color-gray-100: #F1F5F9;
+  --color-gray-200: #E2E8F0;
+  --color-gray-300: #CBD5E1;
+  --color-gray-400: #94A3B8;
+  --color-gray-500: #64748B;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1E293B;
+  --color-gray-900: #0F172A;
 
   /* 语义色 */
-  --color-success: #16A34A;
-  --color-warning: #EAB308;
-  --color-error: #DC2626;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
   --color-info: #3B82F6;
 }
 
-/* 语义令牌 */
+/* 语义令牌 — 默认浅色主题 */
 :root {
-  --color-background: #FFFDF7;
-  --color-foreground: #1A1A2E;
+  --color-background: #F8FAFC;
+  --color-foreground: #0F172A;
 
   --color-card: #FFFFFF;
-  --color-card-foreground: #1A1A2E;
+  --color-card-foreground: #1E293B;
 
-  --color-primary: #1A1A2E;
-  --color-primary-hover: #2D2D45;
-  --color-primary-active: #111128;
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-active: #1E40AF;
   --color-primary-foreground: #FFFFFF;
 
-  --color-secondary: #F4F4F6;
-  --color-secondary-foreground: #1A1A2E;
+  --color-secondary: #F1F5F9;
+  --color-secondary-foreground: #1E293B;
 
-  --color-muted: #F4F4F6;
-  --color-muted-foreground: #6E6E8B;
+  --color-muted: #F1F5F9;
+  --color-muted-foreground: #64748B;
 
-  --color-accent: #FFFDF2;
-  --color-accent-foreground: #D97706;
+  --color-accent: #EFF6FF;
+  --color-accent-foreground: #2563EB;
 
-  --color-border: #E4E4EA;
-  --color-input: #E4E4EA;
-  --color-ring: #D97706;
+  --color-border: #E2E8F0;
+  --color-input: #E2E8F0;
+  --color-ring: #3B82F6;
+}
+
+/* 辉光令牌 (干净聚焦环) */
+:root {
+  --glow-primary: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  --glow-cyan: 0 0 0 3px rgba(6, 182, 212, 0.12);
+  --glow-violet: 0 0 0 3px rgba(139, 92, 246, 0.12);
 }
 
 /* 组件令牌 - 卡片 */
 :root {
-  --card-radius: 12px;
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --card-shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --card-radius: 10px;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(37, 99, 235, 0.1);
   --card-padding: 24px;
   --card-gap: 16px;
 }
@@ -135,17 +146,17 @@
 /* 圆角 */
 :root {
   --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
   --radius-full: 9999px;
 }
 
 /* 阴影 */
 :root {
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 /* 过渡动画 */
@@ -153,19 +164,4 @@
   --transition-fast: 150ms ease;
   --transition-normal: 200ms ease;
   --transition-slow: 300ms ease;
-}
-
-/* 深色模式 */
-.dark {
-  --color-background: #0A0A1E;
-  --color-foreground: #E4E4EA;
-  --color-card: #1A1A2E;
-  --color-card-foreground: #E4E4EA;
-  --color-border: #2D2D45;
-  --color-muted: #1A1A2E;
-  --color-muted-foreground: #9D9DB5;
-  --color-secondary: #1A1A2E;
-  --color-secondary-foreground: #E4E4EA;
-  --color-accent: #B45309;
-  --color-accent-foreground: #FDE68A;
 }

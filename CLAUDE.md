@@ -10,7 +10,7 @@ npm run dev
 
 # Start individually
 npm run dev:server   # Express on :3001 (with --watch auto-restart)
-npm run dev:client   # Vite on :5173
+npm run dev:client   # Vite on :5175
 npm run dev:admin    # Vite on :5174
 
 # Install all dependencies

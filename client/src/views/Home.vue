@@ -86,9 +86,9 @@ const categories = computed(() => store.categories)
 const visibleCategories = computed(() => store.categories.filter(c => c.slug !== 'tech-trends'))
 
 const defaultSlides = [
-  { bg: 'linear-gradient(135deg, #0A0A1E 0%, #1A1A2E 30%, #2D1B45 60%, #0A0A1E 100%)', tag: 'AI 前沿', title: '探索人工智能的无限可能', desc: '从大模型到具身智能，AI 技术正在重塑每一个行业。掌握前沿动态，洞察未来趋势。', link: '/category/ai-news' },
-  { bg: 'linear-gradient(135deg, #0A0A1E 0%, #1A2E1A 30%, #1B451A 60%, #0A0A1E 100%)', tag: '算力革命', title: '算力即生产力', desc: 'GPU 云租赁、智算中心、边缘推理 — 算力基础设施正在经历前所未有的变革与升级。', link: '/category/cloud-computing' },
-  { bg: 'linear-gradient(135deg, #0A0A1E 0%, #2E1A1A 30%, #452D1B 60%, #0A0A1E 100%)', tag: '芯片突破', title: '芯片竞争白热化，国产崛起正当时', desc: 'Blackwell 大规模出货、昇腾 920 流片成功、HBM4 标准发布 — AI 芯片格局加速重塑。', link: '/category/nvidia-chip' }
+  { bg: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 40%, #93C5FD 70%, #F8FAFC 100%)', tag: 'AI 前沿', title: '探索人工智能的无限可能', desc: '从大模型到具身智能，AI 技术正在重塑每一个行业。掌握前沿动态，洞察未来趋势。', link: '/category/ai-news' },
+  { bg: 'linear-gradient(135deg, #ECFEFF 0%, #CFFAFE 40%, #67E8F9 70%, #F8FAFC 100%)', tag: '算力革命', title: '算力即生产力', desc: 'GPU 云租赁、智算中心、边缘推理 — 算力基础设施正在经历前所未有的变革与升级。', link: '/category/cloud-computing' },
+  { bg: 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 40%, #C4B5FD 70%, #F8FAFC 100%)', tag: '芯片突破', title: '芯片竞争白热化，国产崛起正当时', desc: 'Blackwell 大规模出货、昇腾 920 流片成功、HBM4 标准发布 — AI 芯片格局加速重塑。', link: '/category/nvidia-chip' }
 ]
 const carouselSlides = ref([...defaultSlides])
 
@@ -170,9 +170,9 @@ async function loadMore() {
   align-items: center;
   gap: 10px;
   padding: 28px 16px;
-  background: linear-gradient(135deg, var(--color-card) 0%, #f8faff 100%);
+  background: var(--color-card);
   border: 1.5px solid var(--color-border);
-  border-radius: 16px;
+  border-radius: 14px;
   text-decoration: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -186,7 +186,7 @@ async function loadMore() {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--color-primary), #8b5cf6);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-cyan-500));
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -197,9 +197,9 @@ async function loadMore() {
 
 .cat-nav-item:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.12);
   transform: translateY(-4px);
-  background: linear-gradient(135deg, var(--color-card) 0%, #eef4ff 100%);
+  background: var(--color-accent);
 }
 
 .cat-icon {
@@ -261,7 +261,7 @@ async function loadMore() {
   top: 4px;
   bottom: 4px;
   width: 4px;
-  background: linear-gradient(to bottom, var(--color-accent-foreground), var(--color-ink-700));
+  background: linear-gradient(to bottom, var(--color-primary), var(--color-cyan-500));
   border-radius: 2px;
 }
 
@@ -302,7 +302,7 @@ async function loadMore() {
   margin-bottom: 32px;
   border-radius: var(--card-radius);
   overflow: hidden;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
 }
 
 .carousel-slide {
@@ -318,7 +318,7 @@ async function loadMore() {
 .carousel-overlay {
   position: absolute;
   inset: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='g' patternUnits='userSpaceOnUse' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='rgba(255,255,255,0.06)'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='60' height='60' fill='url(%23g)'/%3E%3C/svg%3E");
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='g' patternUnits='userSpaceOnUse' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='rgba(37,99,235,0.06)'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='60' height='60' fill='url(%23g)'/%3E%3C/svg%3E");
   pointer-events: none;
 }
 
@@ -333,9 +333,8 @@ async function loadMore() {
   padding: 4px 14px;
   font-size: 12px;
   font-weight: 600;
-  color: #FDE68A;
-  background: rgba(217, 119, 6, 0.2);
-  backdrop-filter: blur(4px);
+  color: #fff;
+  background: var(--color-primary);
   border-radius: 20px;
   margin-bottom: 16px;
   letter-spacing: 1px;
@@ -344,16 +343,15 @@ async function loadMore() {
 .carousel-title {
   font-size: 36px;
   font-weight: 800;
-  font-family: 'DM Serif Display', 'Noto Serif SC', serif;
-  color: #fff;
+  font-family: 'DM Sans', 'Noto Sans SC', 'PingFang SC', sans-serif;
+  color: #0F172A;
   line-height: 1.2;
   margin: 0 0 12px;
-  text-shadow: 0 2px 20px rgba(0,0,0,0.3);
 }
 
 .carousel-desc {
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.75);
+  color: #475569;
   line-height: 1.7;
   margin: 0 0 24px;
 }
@@ -365,19 +363,18 @@ async function loadMore() {
   padding: 10px 24px;
   font-size: 14px;
   font-weight: 600;
-  color: #FDE68A;
-  background: rgba(217, 119, 6, 0.15);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(217, 119, 6, 0.25);
+  color: #fff;
+  background: var(--color-primary);
+  border: none;
   border-radius: 8px;
   text-decoration: none;
   transition: all 0.3s ease;
 }
 
 .carousel-btn:hover {
-  background: rgba(217, 119, 6, 0.25);
-  border-color: rgba(217, 119, 6, 0.5);
+  background: var(--color-primary-hover);
   transform: translateX(4px);
+  box-shadow: var(--glow-primary);
 }
 
 /* 响应式 */

@@ -120,15 +120,15 @@ onMounted(async () => {
   align-items: center;
   gap: 16px;
   padding: 24px;
-  background: #141418;
-  border: 1px solid #1C1C21;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .stat-card:hover {
-  border-color: #10B981;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.08);
+  border-color: #2563EB;
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.08);
 }
 
 .stat-icon {
@@ -141,7 +141,7 @@ onMounted(async () => {
 }
 
 .stat-icon.blue { background: rgba(37, 99, 235, 0.15); color: #60A5FA; }
-.stat-icon.green { background: rgba(16, 185, 129, 0.15); color: #34D399; }
+.stat-icon.green { background: rgba(37, 99, 235, 0.15); color: #3B82F6; }
 .stat-icon.orange { background: rgba(234, 88, 12, 0.15); color: #FB923C; }
 .stat-icon.purple { background: rgba(147, 51, 234, 0.15); color: #C084FC; }
 .stat-icon.cyan { background: rgba(8, 145, 178, 0.15); color: #22D3EE; }
@@ -155,14 +155,14 @@ onMounted(async () => {
 .stat-value {
   font-size: 28px;
   font-weight: 700;
-  color: #10B981;
+  color: #2563EB;
   line-height: 1.2;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .stat-label {
   font-size: 13px;
-  color: #6B6B78;
+  color: #64748B;
   margin-top: 2px;
 }
 
