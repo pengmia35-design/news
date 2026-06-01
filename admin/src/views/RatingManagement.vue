@@ -107,7 +107,7 @@ async function loadTags() {
     function flatten(items, p = '') {
       for (const t of items) { arr.push({ id: t.id, name: p + t.name }); if (t.children) flatten(t.children, p + '  ') }
     }
-    flatten(res.data || [])
+    flatten(res.data?.tree || res.data || [])
     flatTags.value = arr
   }
 }
@@ -140,19 +140,13 @@ function onDateChange(vals) {
   fetchList()
 }
 
-async function handleExport() {
-  const res = await adminStore.exportRatings({ start_date: filters.start_date || undefined, end_date: filters.end_date || undefined })
-  if (res.code === 200) {
-    const csv = ['ID,用户名,评分,评价标签,文字评价,问题分类,时间']
-    for (const r of res.data) {
-      csv.push([r.id, r.user_name, r.rating, r.rating_tags, r.rating_text, r.problem_tag_name, r.closed_at].join(','))
-    }
-    const blob = new Blob(['﻿' + csv.join('\n')], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url; a.download = 'ratings.csv'; a.click(); URL.revokeObjectURL(url)
-    ElMessage.success('导出成功')
-  }
+function handleExport() {
+  const params = new URLSearchParams()
+  if (filters.rating) params.set('rating', filters.rating)
+  if (filters.problem_tag_id) params.set('problem_tag_id', filters.problem_tag_id)
+  if (filters.start_date) params.set('start_date', filters.start_date)
+  if (filters.end_date) params.set('end_date', filters.end_date)
+  window.open(`/api/admin/chat/export/ratings?${params.toString()}`, '_blank')
 }
 
 function parseTags(tags) {

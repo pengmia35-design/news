@@ -2,6 +2,8 @@ const express = require('express')
 const router = express.Router()
 const { getDatabase } = require('../database')
 const { authMiddleware } = require('../middleware/auth')
+const { emitAdminReply, emitStatusChange, emitNewMessage } = require('../websocket')
+const { generateSuggestions } = require('../services/ai-reply')
 
 router.use(authMiddleware)
 
@@ -113,6 +115,7 @@ router.post('/conversations/:id/messages', (req, res) => {
       'SELECT * FROM chat_messages WHERE conversation_id = ? ORDER BY id DESC LIMIT 1'
     ).get(req.params.id)
     res.success(msg, '发送成功')
+    emitAdminReply(req.params.id, msg)
   } catch (e) {
     console.error('回复消息失败:', e)
     res.fail('回复消息失败', 500)
@@ -134,6 +137,7 @@ router.patch('/conversations/:id/status', (req, res) => {
     ).run(status, req.params.id)
     db.save()
     res.success(null, '状态已更新')
+    emitStatusChange(req.params.id, status)
   } catch (e) {
     console.error('更新状态失败:', e)
     res.fail('更新状态失败', 500)
@@ -500,6 +504,120 @@ router.delete('/offline-messages/:id', (req, res) => {
   } catch (e) {
     console.error('忽略留言失败:', e)
     res.fail('操作失败', 500)
+  }
+})
+
+// ========== 数据导出 ==========
+
+function escapeCSV(str) {
+  if (!str) return ''
+  const s = String(str).replace(/"/g, '""')
+  return `"${s}"`
+}
+
+// GET /api/admin/chat/export/conversations - 导出对话 CSV
+router.get('/export/conversations', (req, res) => {
+  try {
+    const db = getDatabase()
+    const { status, start_date, end_date } = req.query
+
+    let where = 'WHERE 1=1'
+    const params = []
+
+    if (status) { where += ' AND c.status = ?'; params.push(status) }
+    if (start_date) { where += ' AND c.created_at >= ?'; params.push(start_date) }
+    if (end_date) { where += ' AND c.created_at <= ?'; params.push(end_date + ' 23:59:59') }
+
+    const rows = db.prepare(`
+      SELECT c.id, c.user_id, c.user_name, c.status, c.queue_position,
+        c.rating, c.rating_text, c.rating_tags,
+        c.created_at, c.updated_at, c.closed_at,
+        pt.name AS problem_tag_name,
+        (SELECT COUNT(*) FROM chat_messages WHERE conversation_id = c.id) AS msg_count
+      FROM chat_conversations c
+      LEFT JOIN problem_tags pt ON c.problem_tag_id = pt.id
+      ${where}
+      ORDER BY c.created_at DESC
+    `).all(...params)
+
+    const header = 'ID,用户ID,用户名,状态,排队号,评分,评价内容,评价标签,创建时间,更新时间,关闭时间,问题类型,消息数'
+    const lines = [header]
+    for (const r of rows) {
+      const line = [
+        r.id, r.user_id, r.user_name, r.status, r.queue_position,
+        r.rating, r.rating_text, r.rating_tags,
+        r.created_at, r.updated_at, r.closed_at,
+        r.problem_tag_name, r.msg_count
+      ].map(escapeCSV).join(',')
+      lines.push(line)
+    }
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+    res.setHeader('Content-Disposition', `attachment; filename="conversations-${Date.now()}.csv"`)
+    res.send('﻿' + lines.join('\n'))
+  } catch (e) {
+    console.error('导出对话失败:', e)
+    res.fail('导出失败', 500)
+  }
+})
+
+// GET /api/admin/chat/export/ratings - 导出评价 CSV
+router.get('/export/ratings', (req, res) => {
+  try {
+    const db = getDatabase()
+    const { rating, problem_tag_id, start_date, end_date } = req.query
+
+    let where = 'WHERE c.rating IS NOT NULL'
+    const params = []
+
+    if (rating) { where += ' AND c.rating = ?'; params.push(rating) }
+    if (problem_tag_id) { where += ' AND c.problem_tag_id = ?'; params.push(problem_tag_id) }
+    if (start_date) { where += ' AND c.closed_at >= ?'; params.push(start_date) }
+    if (end_date) { where += ' AND c.closed_at <= ?'; params.push(end_date + ' 23:59:59') }
+
+    const rows = db.prepare(`
+      SELECT c.id, c.user_id, c.user_name, c.rating, c.rating_tags, c.rating_text,
+        c.created_at, c.closed_at, pt.name AS problem_tag_name
+      FROM chat_conversations c
+      LEFT JOIN problem_tags pt ON c.problem_tag_id = pt.id
+      ${where}
+      ORDER BY c.closed_at DESC
+    `).all(...params)
+
+    const header = 'ID,用户ID,用户名,评分,评价标签,评价内容,创建时间,关闭时间,问题类型'
+    const lines = [header]
+    for (const r of rows) {
+      const line = [
+        r.id, r.user_id, r.user_name, r.rating, r.rating_tags, r.rating_text,
+        r.created_at, r.closed_at, r.problem_tag_name
+      ].map(escapeCSV).join(',')
+      lines.push(line)
+    }
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+    res.setHeader('Content-Disposition', `attachment; filename="ratings-${Date.now()}.csv"`)
+    res.send('﻿' + lines.join('\n'))
+  } catch (e) {
+    console.error('导出评价失败:', e)
+    res.fail('导出失败', 500)
+  }
+})
+
+// POST /api/admin/chat/conversations/:id/ai-suggest — AI 建议回复
+router.post('/conversations/:id/ai-suggest', async (req, res) => {
+  try {
+    const db = getDatabase()
+    const messages = db.prepare(
+      'SELECT * FROM chat_messages WHERE conversation_id = ? ORDER BY created_at ASC'
+    ).all(req.params.id)
+
+    if (messages.length === 0) return res.fail('暂无消息记录', 400)
+
+    const suggestions = await generateSuggestions(messages)
+    res.success({ suggestions }, 'ok')
+  } catch (e) {
+    console.error('AI建议生成失败:', e)
+    res.fail('生成失败', 500)
   }
 })
 

@@ -2,7 +2,7 @@
   <div class="chat-panel">
     <!-- Header -->
     <div class="panel-header">
-      <button v-if="['chat', 'prechat', 'rating', 'offline'].includes(chatStore.widgetStep)" class="panel-back" @click="handleBack">
+      <button v-if="['chat', 'rating'].includes(chatStore.widgetStep)" class="panel-back" @click="handleBack">
         <el-icon><ArrowLeft /></el-icon>
       </button>
       <span class="panel-title">{{ headerTitle }}</span>
@@ -74,7 +74,7 @@ function handleBack() {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  background: var(--color-ink-700);
+  background: var(--color-primary, #2563EB);
   color: #fff;
   gap: 8px;
   flex-shrink: 0;

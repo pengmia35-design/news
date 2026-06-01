@@ -20,6 +20,12 @@
           接待下一位
         </el-button>
       </div>
+      <div class="toolbar-right">
+        <el-button size="small" @click="handleExportConversations">
+          <el-icon><Download /></el-icon>
+          导出对话
+        </el-button>
+      </div>
     </div>
 
     <!-- Tab 切换 -->
@@ -126,23 +132,59 @@
             </div>
 
             <div v-if="activeConv.status !== 'closed'" class="chat-input-area">
-              <el-popover placement="top-start" :width="300" trigger="click">
-                <template #reference>
-                  <el-button size="small" style="margin-right:8px">快捷回复</el-button>
-                </template>
-                <div v-for="qr in quickReplies" :key="qr.id" class="qr-item" @click="insertQuickReply(qr.content)">
-                  <strong>{{ qr.title }}</strong>
-                  <span>{{ qr.content.substring(0, 40) }}...</span>
-                </div>
-                <div v-if="quickReplies.length === 0" style="color:#64748B;text-align:center">暂无可用的快捷回复</div>
-              </el-popover>
-              <el-input
-                v-model="replyText"
-                placeholder="输入回复..."
-                @keyup.enter.ctrl="handleReply"
-                style="flex:1"
-              />
-              <el-button type="primary" size="small" :disabled="!replyText.trim()" @click="handleReply" style="margin-left:8px">发送</el-button>
+              <div v-if="adminImagePreview" class="admin-image-preview">
+                <img :src="adminImagePreview" alt="preview" />
+                <el-icon class="preview-remove" @click="clearAdminImage"><Close /></el-icon>
+              </div>
+              <div class="input-row">
+                <el-popover placement="top-start" :width="300" trigger="click">
+                  <template #reference>
+                    <el-button size="small">快捷回复</el-button>
+                  </template>
+                  <div v-for="qr in quickReplies" :key="qr.id" class="qr-item" @click="insertQuickReply(qr.content)">
+                    <strong>{{ qr.title }}</strong>
+                    <span>{{ qr.content.substring(0, 40) }}...</span>
+                  </div>
+                  <div v-if="quickReplies.length === 0" style="color:#64748B;text-align:center">暂无可用的快捷回复</div>
+                </el-popover>
+                <el-popover placement="top-start" :width="320" trigger="click" :show-arrow="false">
+                  <template #reference>
+                    <el-button size="small" circle>
+                      <el-icon><Smile /></el-icon>
+                    </el-button>
+                  </template>
+                  <EmojiPicker @select="insertEmoji" />
+                </el-popover>
+                <label class="upload-btn" title="发送图片">
+                  <el-icon><Picture /></el-icon>
+                  <input type="file" accept="image/*" hidden @change="handleAdminImage" />
+                </label>
+                <el-popover placement="top-start" :width="300" trigger="click" @show="fetchAiSuggestions">
+                  <template #reference>
+                    <el-button size="small" type="warning" plain>
+                      <el-icon><MagicStick /></el-icon>
+                      AI建议
+                    </el-button>
+                  </template>
+                  <div v-loading="aiLoading" style="min-height: 60px">
+                    <div v-if="aiSuggestions.length === 0 && !aiLoading" style="color:#64748B;text-align:center;padding:20px 0">
+                      {{ aiError || '点击获取AI建议回复' }}
+                    </div>
+                    <div v-for="(s, i) in aiSuggestions" :key="i" class="ai-suggest-item" @click="insertEmoji(s)">
+                      <span class="ai-suggest-num">{{ i + 1 }}</span>
+                      <span>{{ s }}</span>
+                    </div>
+                  </div>
+                </el-popover>
+                <el-input
+                  v-model="replyText"
+                  placeholder="输入回复...（可直接粘贴图片）"
+                  @keyup.enter.ctrl="handleReply"
+                  @paste="handleAdminPaste"
+                  style="flex:1"
+                />
+                <el-button type="primary" size="small" :disabled="!canSendAdmin" @click="handleReply" style="margin-left:4px">发送</el-button>
+              </div>
             </div>
             <div v-else class="closed-notice">对话已关闭</div>
           </el-card>
@@ -208,17 +250,98 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAdminStore } from '@/stores/admin'
-import { ChatDotRound, Message } from '@element-plus/icons-vue'
+import { ChatDotRound, Message, Picture, Close } from '@element-plus/icons-vue'
 import { ElMessage, ElNotification, ElMessageBox } from 'element-plus'
+import axios from 'axios'
+import EmojiPicker from '@/components/chat/EmojiPicker.vue'
 
 const adminStore = useAdminStore()
+const WS_URL = `ws://${window.location.hostname}:3001/ws`
 
-// 新消息通知
-const prevUnread = ref(0)
-let unreadTimer = null
+// WebSocket
+let ws = null
+let wsReconnectTimer = null
+let subscribedConvId = null
 let audioCtx = null
+
+function connectAdminWs() {
+  if (ws && ws.readyState === WebSocket.OPEN) return
+  try {
+    ws = new WebSocket(WS_URL)
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: 'auth_admin' }))
+      if (subscribedConvId) {
+        ws.send(JSON.stringify({ type: 'subscribe', conversation_id: subscribedConvId }))
+      }
+    }
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        handleWsEvent(data)
+      } catch (e) { /* ignore */ }
+    }
+    ws.onclose = () => {
+      if (wsReconnectTimer) clearTimeout(wsReconnectTimer)
+      wsReconnectTimer = setTimeout(connectAdminWs, 5000)
+    }
+    ws.onerror = () => {}
+  } catch (e) { /* ignore */ }
+}
+
+function handleWsEvent(data) {
+  switch (data.type) {
+    case 'admin_unread_update':
+      fetchList()
+      notifyNewMessage(1)
+      break
+    case 'new_message':
+    case 'admin_reply':
+      if (data.conversation_id === activeConv.value?.id) {
+        const exists = messages.value.some(m => m.id === data.message.id)
+        if (!exists) {
+          messages.value.push(data.message)
+          nextTick(scrollBottom)
+        }
+      }
+      // Update sidebar last_message
+      const idx = list.value.findIndex(c => c.id == data.conversation_id)
+      if (idx >= 0) {
+        list.value[idx].last_message = data.message.content
+        list.value[idx].updated_at = data.message.created_at
+      }
+      break
+    case 'status_change':
+      if (data.conversation_id === activeConv.value?.id && activeConv.value) {
+        activeConv.value.status = data.status
+      }
+      const si = list.value.findIndex(c => c.id == data.conversation_id)
+      if (si >= 0) list.value[si].status = data.status
+      break
+  }
+}
+
+function subscribeConv(convId) {
+  if (subscribedConvId && subscribedConvId !== convId) {
+    sendWs({ type: 'unsubscribe', conversation_id: subscribedConvId })
+  }
+  subscribedConvId = convId
+  sendWs({ type: 'subscribe', conversation_id: convId })
+}
+
+function unsubscribeConv() {
+  if (subscribedConvId) {
+    sendWs({ type: 'unsubscribe', conversation_id: subscribedConvId })
+    subscribedConvId = null
+  }
+}
+
+function sendWs(msg) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(msg))
+  }
+}
 
 function playNotificationSound() {
   try {
@@ -230,16 +353,14 @@ function playNotificationSound() {
     osc.type = 'sine'
     gain.gain.setValueAtTime(0.3, audioCtx.currentTime)
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3)
-    // 双音调通知声
     osc.frequency.setValueAtTime(880, audioCtx.currentTime)
     osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1)
     osc.start(audioCtx.currentTime)
     osc.stop(audioCtx.currentTime + 0.3)
-  } catch (e) { /* 忽略音频错误 */ }
+  } catch (e) { /* ignore */ }
 }
 
 function notifyNewMessage(count) {
-  // 浏览器桌面通知
   if (Notification.permission === 'granted') {
     new Notification('新消息提醒', {
       body: `有 ${count} 条新消息等待处理`,
@@ -254,21 +375,6 @@ function notifyNewMessage(count) {
   playNotificationSound()
 }
 
-async function checkUnreadMessages() {
-  try {
-    const res = await adminStore.fetchUnreadCount()
-    if (res.code === 200) {
-      const current = res.data.total_unread
-      if (current > prevUnread.value && prevUnread.value > 0) {
-        notifyNewMessage(current - prevUnread.value)
-        // 刷新对话列表以显示新消息
-        fetchList()
-      }
-      prevUnread.value = current
-    }
-  } catch (e) { /* silent */ }
-}
-
 const loading = ref(false)
 const list = ref([])
 const total = ref(0)
@@ -279,6 +385,9 @@ const filters = reactive({ status: '', keyword: '' })
 const activeConv = ref(null)
 const messages = ref([])
 const replyText = ref('')
+const adminImageFile = ref(null)
+const adminImagePreview = ref('')
+const canSendAdmin = computed(() => replyText.value.trim() || adminImageFile.value)
 const flatTags = ref([])
 const quickReplies = ref([])
 const msgArea = ref(null)
@@ -301,18 +410,18 @@ onMounted(async () => {
   fetchList()
   initAgentStatus()
   checkPendingOffline()
-  checkUnreadMessages()
-  // 每 60 秒轮询 agent 状态
+  // 每 60 秒轮询 agent 状态（agent 上下线无 WS 事件）
   statusPollTimer = setInterval(checkPendingOffline, 60000)
-  // 每 10 秒轮询新消息
-  unreadTimer = setInterval(checkUnreadMessages, 10000)
-  // 请求通知权限
+  // WebSocket 替代轮询
+  connectAdminWs()
   if (Notification.permission === 'default') Notification.requestPermission()
 })
 
 onUnmounted(() => {
   if (statusPollTimer) clearInterval(statusPollTimer)
-  if (unreadTimer) clearInterval(unreadTimer)
+  if (wsReconnectTimer) clearTimeout(wsReconnectTimer)
+  unsubscribeConv()
+  if (ws) { ws.onclose = null; ws.close() }
 })
 
 async function initAgentStatus() {
@@ -366,6 +475,13 @@ async function handleTakeNext() {
   } else {
     ElMessage.error(res.data?.message || '操作失败')
   }
+}
+
+function handleExportConversations() {
+  const params = new URLSearchParams()
+  if (filters.status) params.set('status', filters.status)
+  const url = `/api/admin/chat/export/conversations?${params.toString()}`
+  window.open(url, '_blank')
 }
 
 function handleTabChange(tab) {
@@ -431,7 +547,7 @@ async function loadTags() {
         if (t.children) flatten(t.children, prefix + '  ')
       }
     }
-    flatten(res.data || [])
+    flatten(res.data?.tree || res.data || [])
     flatTags.value = arr
   }
 }
@@ -455,30 +571,47 @@ async function fetchList() {
 
 async function selectConv(conv) {
   activeConv.value = conv
+  aiSuggestions.value = []
+  aiError.value = ''
   const res = await adminStore.fetchConversationDetail(conv.id)
   if (res.code === 200) {
     messages.value = res.data.messages || []
     activeConv.value = res.data.conversation
     nextTick(scrollBottom)
   }
+  subscribeConv(conv.id)
 }
 
 async function handleReply() {
-  if (!replyText.value.trim()) return
-  const res = await adminStore.replyToConversation(activeConv.value.id, replyText.value.trim())
-  if (res.code === 200) {
-    messages.value.push(res.data)
-    replyText.value = ''
-    await fetchList()
-    const detail = await adminStore.fetchConversationDetail(activeConv.value.id)
-    if (detail.code === 200) {
-      messages.value = detail.data.messages || []
-      activeConv.value = detail.data.conversation
+  if (!canSendAdmin.value) return
+
+  if (adminImageFile.value) {
+    const formData = new FormData()
+    formData.append('image', adminImageFile.value)
+    try {
+      const res = await axios.post('/api/chat/upload', formData)
+      if (res.data.code === 200) {
+        await adminStore.replyToConversation(activeConv.value.id, res.data.data.url, 'image')
+      }
+    } catch (e) {
+      ElMessage.error('图片上传失败')
+      return
     }
-    nextTick(scrollBottom)
-  } else {
-    ElMessage.error(res.message)
+    clearAdminImage()
   }
+
+  if (replyText.value.trim()) {
+    const res = await adminStore.replyToConversation(activeConv.value.id, replyText.value.trim())
+    if (res.code === 200) {
+      messages.value.push(res.data)
+    } else {
+      ElMessage.error(res.message)
+    }
+    replyText.value = ''
+  }
+
+  fetchList()
+  nextTick(scrollBottom)
 }
 
 async function handleStatusChange(status) {
@@ -493,8 +626,65 @@ async function handleTagChange(tagId) {
   ElMessage.success('标签已更新')
 }
 
+const aiSuggestions = ref([])
+const aiLoading = ref(false)
+const aiError = ref('')
+
+async function fetchAiSuggestions() {
+  if (aiSuggestions.value.length > 0) return
+  if (!activeConv.value) return
+  aiLoading.value = true
+  aiError.value = ''
+  try {
+    const res = await axios.post(`/api/admin/chat/conversations/${activeConv.value.id}/ai-suggest`)
+    if (res.data.code === 200) {
+      aiSuggestions.value = res.data.data.suggestions || []
+      if (aiSuggestions.value.length === 0) aiError.value = 'AI 未返回建议，请检查 API 配置'
+    } else {
+      aiError.value = res.data.message
+    }
+  } catch (e) {
+    aiError.value = '请求失败，请检查 AI 服务配置'
+  }
+  aiLoading.value = false
+}
+
 function insertQuickReply(content) {
   replyText.value = content
+}
+
+function insertEmoji(emoji) {
+  replyText.value += emoji
+}
+
+function handleAdminImage(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  setAdminImage(file)
+}
+
+function handleAdminPaste(e) {
+  const items = e.clipboardData?.items
+  if (!items) return
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault()
+      setAdminImage(item.getAsFile())
+      break
+    }
+  }
+}
+
+function setAdminImage(file) {
+  if (adminImagePreview.value) URL.revokeObjectURL(adminImagePreview.value)
+  adminImageFile.value = file
+  adminImagePreview.value = URL.createObjectURL(file)
+}
+
+function clearAdminImage() {
+  if (adminImagePreview.value) URL.revokeObjectURL(adminImagePreview.value)
+  adminImageFile.value = null
+  adminImagePreview.value = ''
 }
 
 function scrollBottom() {
@@ -542,6 +732,11 @@ function formatTime(t) {
   display: flex;
   align-items: center;
 }
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 /* Tabs */
 .mgmt-tabs {
@@ -588,12 +783,23 @@ function formatTime(t) {
 .bubble-user { background: #E2E8F0; border: 1px solid #E2E8F0; color: #1E293B; }
 .bubble-agent { background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.2); color: #1E293B; }
 .msg-time { font-size: 10px; color: #64748B; margin-top: 4px; }
-.chat-input-area { display: flex; align-items: center; padding: 12px 0 0; border-top: 1px solid #E2E8F0; margin-top: 12px; }
+.chat-input-area { padding: 12px 0 0; border-top: 1px solid #E2E8F0; margin-top: 12px; }
+.admin-image-preview { position: relative; display: inline-block; margin-bottom: 8px; }
+.admin-image-preview img { max-height: 100px; border-radius: 8px; }
+.preview-remove { position: absolute; top: -6px; right: -6px; background: #DC2626; color: #fff; border-radius: 50%; cursor: pointer; font-size: 12px; padding: 2px; }
+.input-row { display: flex; align-items: center; gap: 6px; }
+.upload-btn { cursor: pointer; color: #64748B; padding: 8px; display: flex; align-items: center; border-radius: 6px; transition: color 0.2s; }
+.upload-btn:hover { color: #2563EB; }
 .closed-notice { text-align: center; color: #64748B; padding: 12px 0 0; }
 .qr-item { padding: 8px; border-radius: 6px; cursor: pointer; margin-bottom: 4px; display: flex; flex-direction: column; gap: 2px; }
 .qr-item:hover { background: #E2E8F0; }
 .qr-item strong { font-size: 13px; color: #1E293B; }
 .qr-item span { font-size: 12px; color: #64748B; }
+
+.ai-suggest-item { padding: 8px 10px; border-radius: 6px; cursor: pointer; margin-bottom: 4px; display: flex; gap: 8px; align-items: flex-start; transition: background 0.15s; }
+.ai-suggest-item:hover { background: #EFF6FF; }
+.ai-suggest-num { width: 20px; height: 20px; border-radius: 50%; background: #F59E0B; color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 600; }
+.ai-suggest-item span { font-size: 13px; color: #1E293B; line-height: 1.5; }
 
 /* Offline tab */
 .offline-tab { padding-top: 8px; }

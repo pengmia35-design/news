@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { api } from '@/stores/app'
 
+const WS_URL = `ws://${window.location.hostname}:3001/ws`
+
 export const useChatStore = defineStore('chat', {
   state: () => ({
     conversations: [],
@@ -8,11 +10,13 @@ export const useChatStore = defineStore('chat', {
     messages: [],
     problemTags: [],
     widgetOpen: false,
-    widgetStep: 'button',      // 'button' | 'prechat' | 'conversations' | 'chat' | 'rating'
-    ratingPending: null,       // conversation id awaiting rating
+    widgetStep: 'button',      // 'button' | 'prechat' | 'conversations' | 'chat' | 'rating' | 'offline'
+    ratingPending: null,
     unreadCount: 0,
     userId: '',
-    pollingTimer: null
+    ws: null,
+    wsReconnectTimer: null,
+    subscribedConvId: null
   }),
 
   getters: {
@@ -31,7 +35,100 @@ export const useChatStore = defineStore('chat', {
         localStorage.setItem('chat_user_id', uid)
       }
       this.userId = uid
+      this._connectWebSocket()
       return uid
+    },
+
+    // WebSocket 连接
+    _connectWebSocket() {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) return
+      try {
+        this.ws = new WebSocket(WS_URL)
+        this.ws.onopen = () => {
+          this.ws.send(JSON.stringify({ type: 'auth_user', userId: this.userId }))
+          // 重新订阅当前对话
+          if (this.subscribedConvId) {
+            this.ws.send(JSON.stringify({ type: 'subscribe', conversation_id: this.subscribedConvId }))
+          }
+        }
+        this.ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data)
+            this._handleWsEvent(data)
+          } catch (e) { /* ignore */ }
+        }
+        this.ws.onclose = () => {
+          // 5秒后自动重连
+          if (this.wsReconnectTimer) clearTimeout(this.wsReconnectTimer)
+          this.wsReconnectTimer = setTimeout(() => this._connectWebSocket(), 5000)
+        }
+        this.ws.onerror = () => {}
+      } catch (e) { /* ignore */ }
+    },
+
+    _handleWsEvent(data) {
+      switch (data.type) {
+        case 'new_message':
+          // 用户消息确认（自己发的回显已经 optimistic 了，这里处理 AI 自动回复）
+          if (data.conversation_id === this.activeConversation?.id) {
+            // 避免重复添加（optimistic 已添加的消息无需再 push）
+            const exists = this.messages.some(m => m.id === data.message.id)
+            if (!exists) {
+              this.messages.push(data.message)
+            }
+          }
+          // 更新对话列表中的最后消息
+          this._updateConvLastMsg(data.conversation_id, data.message)
+          break
+        case 'admin_reply':
+          if (data.conversation_id === this.activeConversation?.id) {
+            const exists = this.messages.some(m => m.id === data.message.id)
+            if (!exists) {
+              this.messages.push(data.message)
+              // 标记管理员消息为已读
+              this.messages = [...this.messages]
+            }
+          }
+          this._updateConvLastMsg(data.conversation_id, data.message)
+          break
+        case 'status_change':
+          if (data.conversation_id === this.activeConversation?.id && this.activeConversation) {
+            this.activeConversation.status = data.status
+          }
+          const ci = this.conversations.findIndex(c => c.id == data.conversation_id)
+          if (ci >= 0) this.conversations[ci].status = data.status
+          break
+      }
+    },
+
+    _updateConvLastMsg(convId, msg) {
+      const idx = this.conversations.findIndex(c => c.id == convId)
+      if (idx >= 0) {
+        this.conversations[idx].last_message = msg.content
+        this.conversations[idx].updated_at = msg.created_at
+      }
+    },
+
+    // 订阅/取消订阅对话
+    _subscribeConv(convId) {
+      if (this.subscribedConvId && this.subscribedConvId !== convId) {
+        this._sendWs({ type: 'unsubscribe', conversation_id: this.subscribedConvId })
+      }
+      this.subscribedConvId = convId
+      this._sendWs({ type: 'subscribe', conversation_id: convId })
+    },
+
+    _unsubscribeConv() {
+      if (this.subscribedConvId) {
+        this._sendWs({ type: 'unsubscribe', conversation_id: this.subscribedConvId })
+        this.subscribedConvId = null
+      }
+    },
+
+    _sendWs(msg) {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify(msg))
+      }
     },
 
     async loadProblemTags() {
@@ -56,8 +153,7 @@ export const useChatStore = defineStore('chat', {
           this.activeConversation = res.data.data
           this.messages = []
           this.widgetStep = 'chat'
-          // 开始轮询
-          this._startPolling(res.data.data.id)
+          this._subscribeConv(res.data.data.id)
           return res.data.data
         }
       } catch (e) {
@@ -73,7 +169,6 @@ export const useChatStore = defineStore('chat', {
         })
         if (res.data.code === 200) {
           this.conversations = res.data.data.list || []
-          // 计算未读总数
           this.unreadCount = this.conversations.reduce(
             (sum, c) => sum + (c.unread_count || 0), 0
           )
@@ -89,7 +184,6 @@ export const useChatStore = defineStore('chat', {
         if (res.data.code === 200) {
           this.activeConversation = res.data.data.conversation
           this.messages = res.data.data.messages || []
-          // 更新列表中的未读计数
           const idx = this.conversations.findIndex(c => c.id == conversationId)
           if (idx >= 0) this.conversations[idx].unread_count = 0
         }
@@ -121,7 +215,7 @@ export const useChatStore = defineStore('chat', {
         if (res.data.code === 200) {
           this.ratingPending = conversationId
           this.widgetStep = 'rating'
-          this._stopPolling()
+          this._unsubscribeConv()
         }
       } catch (e) {
         console.error('关闭对话失败:', e)
@@ -147,7 +241,6 @@ export const useChatStore = defineStore('chat', {
 
     async openWidget() {
       this.widgetOpen = true
-      // Check agent online status
       try {
         const res = await api.get('/admin/chat/agent/status')
         if (res.data.code === 200 && !res.data.data.agent_online && this.conversations.length === 0) {
@@ -169,47 +262,26 @@ export const useChatStore = defineStore('chat', {
     closeWidget() {
       this.widgetOpen = false
       this.widgetStep = 'button'
-      this._stopPolling()
+      this._unsubscribeConv()
     },
 
     selectConversation(conv) {
       this.activeConversation = conv
       this.widgetStep = 'chat'
       this.loadMessages(conv.id)
-      this._startPolling(conv.id)
+      this._subscribeConv(conv.id)
     },
 
     goToConversations() {
       this.widgetStep = 'conversations'
       this.loadConversations()
-      this._stopPolling()
+      this._unsubscribeConv()
     },
 
     goToPreChat() {
       this.loadProblemTags()
       this.widgetStep = 'prechat'
-      this._stopPolling()
-    },
-
-    // 5秒轮询新消息
-    _startPolling(convId) {
-      this._stopPolling()
-      this.pollingTimer = setInterval(async () => {
-        try {
-          const res = await api.get(`/chat/conversations/${convId}`)
-          if (res.data.code === 200) {
-            this.messages = res.data.data.messages || []
-            this.activeConversation = res.data.data.conversation
-          }
-        } catch (e) { /* silent */ }
-      }, 5000)
-    },
-
-    _stopPolling() {
-      if (this.pollingTimer) {
-        clearInterval(this.pollingTimer)
-        this.pollingTimer = null
-      }
+      this._unsubscribeConv()
     }
   }
 })

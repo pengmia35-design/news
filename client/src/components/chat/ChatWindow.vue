@@ -22,6 +22,14 @@
         <el-icon class="preview-remove" @click="imagePreview = null; imageFile = null"><Close /></el-icon>
       </div>
       <div class="input-row">
+        <el-popover placement="top-start" :width="320" trigger="click" :show-arrow="false">
+          <template #reference>
+            <button class="emoji-btn" title="表情">
+              <el-icon><Smile /></el-icon>
+            </button>
+          </template>
+          <EmojiPicker @select="insertEmoji" />
+        </el-popover>
         <label class="upload-btn" title="发送图片">
           <el-icon><Picture /></el-icon>
           <input type="file" accept="image/*" hidden @change="handleImage" />
@@ -29,9 +37,10 @@
         <textarea
           v-model="textMsg"
           class="msg-input"
-          placeholder="输入消息..."
+          placeholder="输入消息...（可直接粘贴图片）"
           rows="1"
           @keydown.enter.exact.prevent="handleSend"
+          @paste="handlePaste"
           ref="inputRef"
         ></textarea>
         <button class="send-btn" :disabled="!canSend" @click="handleSend">
@@ -48,6 +57,7 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import MessageBubble from './MessageBubble.vue'
+import EmojiPicker from './EmojiPicker.vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 
@@ -65,8 +75,32 @@ const canSend = computed(() => textMsg.value.trim() || imageFile.value)
 function handleImage(e) {
   const file = e.target.files[0]
   if (!file) return
+  setImageFile(file)
+}
+
+// 粘贴图片
+function handlePaste(e) {
+  const items = e.clipboardData?.items
+  if (!items) return
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault()
+      const file = item.getAsFile()
+      setImageFile(file)
+      break
+    }
+  }
+}
+
+function setImageFile(file) {
+  if (imagePreview.value) URL.revokeObjectURL(imagePreview.value)
   imageFile.value = file
   imagePreview.value = URL.createObjectURL(file)
+}
+
+function insertEmoji(emoji) {
+  textMsg.value += emoji
+  inputRef.value?.focus()
 }
 
 // 发送
@@ -168,6 +202,22 @@ function scrollToBottom() {
   gap: 6px;
 }
 
+.emoji-btn {
+  cursor: pointer;
+  color: #64748B;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+}
+
+.emoji-btn:hover {
+  color: var(--color-primary, #2563EB);
+}
+
 .upload-btn {
   cursor: pointer;
   color: #64748B;
@@ -202,7 +252,7 @@ function scrollToBottom() {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #D97706;
+  background: var(--color-primary, #2563EB);
   color: #fff;
   border: none;
   cursor: pointer;

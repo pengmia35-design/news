@@ -71,7 +71,7 @@ function formatTime(t) {
 }
 
 .user-avatar {
-  background: #D97706;
+  background: var(--color-primary, #2563EB);
 }
 
 .msg-bubble {
@@ -82,7 +82,7 @@ function formatTime(t) {
 }
 
 .bubble-own {
-  background: var(--color-ink-700);
+  background: var(--color-primary, #2563EB);
   color: #fff;
   border-bottom-right-radius: 4px;
 }

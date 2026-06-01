@@ -4,6 +4,7 @@ const multer = require('multer')
 const path = require('path')
 const { getDatabase } = require('../database')
 const { generateAIReply } = require('../services/ai-reply')
+const { emitNewMessage } = require('../websocket')
 
 // 图片上传配置
 const storage = multer.diskStorage({
@@ -173,6 +174,7 @@ router.post('/conversations/:id/messages', (req, res) => {
     }
 
     res.success(msg, '发送成功')
+    emitNewMessage(req.params.id, msg)
   } catch (e) {
     console.error('发送消息失败:', e)
     res.fail('发送消息失败', 500)

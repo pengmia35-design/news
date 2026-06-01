@@ -10,6 +10,7 @@ const bcrypt = require('bcryptjs')
 
 const DB_PATH = path.join(__dirname, 'news.db')
 let db = null
+let saveInterval = null
 
 // sql.js 包装器 - 提供类似 better-sqlite3 的 API
 class StatementWrapper {
@@ -288,6 +289,7 @@ async function initDatabase() {
       ['芯片&英伟达', 'nvidia-chip', '英伟达GPU、芯片行业、算力硬件', 3],
       ['开发工具', 'dev-tools', 'Cursor、Claude Code、GitHub、开发工具', 4],
       ['前沿科技动态', 'tech-trends', '前沿科技、编程开发、技术趋势', 5],
+      ['AI行业应用', 'ai-applications', 'AI在各行业的落地应用案例', 6],
     ]
     for (const cat of categories) {
       db.run('INSERT INTO categories (name, slug, description, sort_order) VALUES (?, ?, ?, ?)', cat)
@@ -344,10 +346,10 @@ async function initDatabase() {
       ['welcome_message', '您好！欢迎使用 TechAI 客服，请问有什么可以帮您？'],
       ['response_time_hint', '我们会在 20 分钟内回复您，请耐心等待'],
       ['offline_hours_message', '当前为非工作时间，我们会在下一个工作日尽快回复您'],
-      ['ai_enabled', '0'],
-      ['ai_api_endpoint', 'https://api.openai.com/v1/chat/completions'],
+      ['ai_enabled', '1'],
+      ['ai_api_endpoint', 'https://api.deepseek.com/v1/chat/completions'],
       ['ai_api_key', ''],
-      ['ai_model', 'gpt-4o-mini'],
+      ['ai_model', 'deepseek-v4-flash'],
       ['agent_online', '0']
     ]
     for (const c of configs) {
@@ -357,15 +359,15 @@ async function initDatabase() {
 
   // === 迁移：补种新增的 system_config 键 ===
   const newConfigs = [
-    ['ai_enabled', '0'],
-    ['ai_api_endpoint', 'https://api.openai.com/v1/chat/completions'],
+    ['ai_enabled', '1'],
+    ['ai_api_endpoint', 'https://api.deepseek.com/v1/chat/completions'],
     ['ai_api_key', ''],
-    ['ai_model', 'gpt-4o-mini'],
+    ['ai_model', 'deepseek-v4-flash'],
     ['agent_online', '0']
   ]
   for (const [key, val] of newConfigs) {
-    const exists = db.exec(`SELECT COUNT(*) AS cnt FROM system_config WHERE config_key = '${key}'`)
-    if (exists.length > 0 && exists[0].values[0][0] === 0) {
+    const exists = db.prepare('SELECT COUNT(*) AS cnt FROM system_config WHERE config_key = ?').get(key)
+    if (exists && exists.cnt === 0) {
       db.run('INSERT INTO system_config (config_key, config_value) VALUES (?, ?)', [key, val])
     }
   }
@@ -428,11 +430,18 @@ async function initDatabase() {
   }
 
   saveDatabase()
-  console.log('  ✅ 数据库初始化完成')
+
+  // 每 5 分钟自动持久化，防止意外退出丢数据
+  saveInterval = setInterval(() => {
+    try { saveDatabase() } catch (e) { /* silent */ }
+  }, 300000)
+
+  console.log('  ✅ 数据库初始化完成 (自动保存: 5min)')
   return getDatabase()
 }
 
 function closeDatabase() {
+  if (saveInterval) { clearInterval(saveInterval); saveInterval = null }
   if (db) {
     saveDatabase()
     db.close()

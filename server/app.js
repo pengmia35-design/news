@@ -6,6 +6,7 @@
 const express = require('express')
 const cors = require('cors')
 const path = require('path')
+const fs = require('fs')
 const { initDatabase, closeDatabase } = require('./database')
 
 async function main() {
@@ -27,12 +28,22 @@ async function main() {
 
   // SAAS 后台管理面板
   app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'admin-dashboard.html'))
+    const filePath = path.join(__dirname, '..', 'admin-dashboard.html')
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath)
+    } else {
+      res.status(404).send('页面开发中，敬请期待')
+    }
   })
 
   // 微信 H5 移动端
   app.get('/wechat', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'wechat-h5.html'))
+    const filePath = path.join(__dirname, '..', 'wechat-h5.html')
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath)
+    } else {
+      res.status(404).send('页面开发中，敬请期待')
+    }
   })
 
   // 请求日志
@@ -85,6 +96,9 @@ app.use('/api/admin/system', require('./routes/admin-system'))
     console.log(`  📦 数据库: SQLite (sql.js)`)
     console.log(`  🔧 环境: ${process.env.NODE_ENV || 'development'}\n`)
   })
+
+  // WebSocket 实时推送
+  require('./websocket').initWebSocket(server)
 
   // 优雅退出
   process.on('SIGINT', () => {

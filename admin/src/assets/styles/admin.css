@@ -1,5 +1,6 @@
 /* Admin 全局样式 — 蓝白轻科技 */
 @import './design-tokens.css';
+@import url('https://cdn.jsdelivr.net/npm/alibaba-puhuiti@3.0.0/index.css');
 
 * {
   margin: 0;
@@ -8,7 +9,7 @@
 }
 
 body {
-  font-family: 'DM Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  font-family: 'Alibaba PuHuiTi 3.0', 'Alibaba PuHuiTi', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
   background-color: var(--color-background);
   color: var(--color-foreground);
   font-size: var(--font-size-base);
