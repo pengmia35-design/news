@@ -208,6 +208,13 @@ async function main() {
 
   const db = await initDatabase()
 
+  // 防止重复生成：如果已有足够文章则跳过
+  const articleCount = db.prepare('SELECT COUNT(*) as cnt FROM articles').get()
+  if (articleCount && articleCount.cnt >= 120) {
+    console.log(`  ⚠️ 数据库中已有 ${articleCount.cnt} 篇文章，跳过种子数据生成\n`)
+    return
+  }
+
   // 1. 确保第6个分类存在
   const existing = db.prepare('SELECT id FROM categories WHERE slug = ?').get('ai-applications')
   if (!existing) {

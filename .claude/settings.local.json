@@ -25,7 +25,20 @@
       "Bash(taskkill //PID 2736 //F)",
       "Bash(git checkout *)",
       "Bash(git add *)",
-      "Bash(git commit -m 'refactor: remove customer service chat system *)"
+      "Bash(git commit -m 'refactor: remove customer service chat system *)",
+      "Bash(git push *)",
+      "Bash(taskkill //PID 22124 //F)",
+      "Bash(node -e \"const {initDatabase,getDatabase} = require\\('./database'\\); initDatabase\\(\\).then\\(db => { const c = db.prepare\\('SELECT COUNT\\(*\\) as cnt FROM articles'\\).get\\(\\); console.log\\('articles:', c.cnt\\); }\\);\")",
+      "Bash(taskkill //F //PID 23820)",
+      "Bash(curl -sI http://localhost:5175/embed.js)",
+      "Bash(curl -s http://localhost:5177/)",
+      "Bash(curl -s http://localhost:5174/)",
+      "Bash(curl -s http://localhost:3001/dashboard)",
+      "Bash(node *)",
+      "Bash(taskkill //F //PID 25020)",
+      "Bash(curl -s http://localhost:3001/api/articles?pageSize=1)",
+      "Bash(taskkill //F //PID 19428)",
+      "Bash(git commit -m 'fix: code review — fix 6 bugs found during audit *)"
     ]
   }
 }

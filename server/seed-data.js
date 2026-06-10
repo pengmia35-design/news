@@ -63,6 +63,13 @@ async function main() {
   await initDatabase()
   const db = getDatabase()
 
+  // 防止重复生成
+  const existingCount = db.prepare('SELECT COUNT(*) as cnt FROM articles').get()
+  if (existingCount && existingCount.cnt >= 25) {
+    console.log(`  ⚠️ 数据库中已有 ${existingCount.cnt} 篇文章，跳过种子数据生成`)
+    return
+  }
+
   const catMap = {}
   for (const cat of CATEGORIES) {
     catMap[cat.slug] = cat.id

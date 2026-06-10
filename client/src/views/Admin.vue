@@ -36,7 +36,8 @@
           <div class="slide-grid">
             <div v-for="(slide, i) in slides" :key="slide.id" class="slide-card">
               <div class="slide-preview">
-                <img :src="slide.image_url" :alt="slide.title" @error="e => e.target.src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22400%22><rect fill=%22%233b82f6%22 width=%22800%22 height=%22400%22/><text x=%22400%22 y=%22200%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22>加载失败</text></svg>'" />
+                <img :src="slide.image_url" :alt="slide.title" @error="e => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex'; }" />
+                <div class="img-fallback" style="display:none; width:100%; aspect-ratio:2/1; background:#2563EB; color:#fff; align-items:center; justify-content:center; font-size:14px;">图片加载失败</div>
                 <div class="slide-order">{{ i + 1 }}</div>
                 <div class="slide-status" :class="{ active: slide.is_active }">
                   {{ slide.is_active ? '启用' : '禁用' }}
