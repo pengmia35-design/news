@@ -28,39 +28,6 @@
           <el-icon><Edit /></el-icon>
           <span>新增文章</span>
         </el-menu-item>
-
-        <el-menu-item index="/chat">
-          <el-icon><ChatDotRound /></el-icon>
-          <span>客服对话</span>
-          <span v-if="offlineBadge > 0" class="menu-badge">{{ offlineBadge }}</span>
-        </el-menu-item>
-
-        <el-sub-menu index="faq-sub">
-          <template #title>
-            <el-icon><QuestionFilled /></el-icon>
-            <span>FAQ管理</span>
-          </template>
-          <el-menu-item index="/faq">文章管理</el-menu-item>
-          <el-menu-item index="/quick-replies">快捷回复</el-menu-item>
-        </el-sub-menu>
-
-        <el-sub-menu index="data-sub">
-          <template #title>
-            <el-icon><DataAnalysis /></el-icon>
-            <span>数据中心</span>
-          </template>
-          <el-menu-item index="/stats">客服统计</el-menu-item>
-          <el-menu-item index="/ratings">评价管理</el-menu-item>
-        </el-sub-menu>
-
-        <el-sub-menu index="settings-sub">
-          <template #title>
-            <el-icon><Setting /></el-icon>
-            <span>系统设置</span>
-          </template>
-          <el-menu-item index="/problem-tags">问题标签</el-menu-item>
-          <el-menu-item index="/settings">系统配置</el-menu-item>
-        </el-sub-menu>
       </el-menu>
     </el-aside>
 
@@ -84,36 +51,16 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAdminStore } from '@/stores/admin'
-import { DataBoard, Document, Edit, ChatDotRound, QuestionFilled, DataAnalysis, Setting } from '@element-plus/icons-vue'
+import { DataBoard, Document, Edit } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 const adminStore = useAdminStore()
 
 const activeMenu = computed(() => route.path)
-const offlineBadge = ref(0)
-let badgeTimer = null
-
-onMounted(() => {
-  fetchBadge()
-  badgeTimer = setInterval(fetchBadge, 60000)
-})
-
-onUnmounted(() => {
-  if (badgeTimer) clearInterval(badgeTimer)
-})
-
-async function fetchBadge() {
-  try {
-    const res = await adminStore.fetchAgentStatus()
-    if (res.code === 200) {
-      offlineBadge.value = res.data.offline_pending_count || 0
-    }
-  } catch (e) { /* silent */ }
-}
 
 function handleLogout() {
   adminStore.logout()

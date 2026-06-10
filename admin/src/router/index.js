@@ -36,48 +36,6 @@ const routes = [
         name: 'ArticleEdit',
         component: () => import('@/views/ArticleEdit.vue'),
         meta: { title: '编辑文章' }
-      },
-      {
-        path: 'chat',
-        name: 'ChatManagement',
-        component: () => import('@/views/ChatManagement.vue'),
-        meta: { title: '客服对话' }
-      },
-      {
-        path: 'faq',
-        name: 'FaqManagement',
-        component: () => import('@/views/FaqManagement.vue'),
-        meta: { title: 'FAQ管理' }
-      },
-      {
-        path: 'quick-replies',
-        name: 'QuickReplyManagement',
-        component: () => import('@/views/QuickReplyManagement.vue'),
-        meta: { title: '快捷回复' }
-      },
-      {
-        path: 'ratings',
-        name: 'RatingManagement',
-        component: () => import('@/views/RatingManagement.vue'),
-        meta: { title: '评价管理' }
-      },
-      {
-        path: 'stats',
-        name: 'ChatStats',
-        component: () => import('@/views/ChatStats.vue'),
-        meta: { title: '客服统计' }
-      },
-      {
-        path: 'problem-tags',
-        name: 'ProblemTagManagement',
-        component: () => import('@/views/ProblemTagManagement.vue'),
-        meta: { title: '问题标签' }
-      },
-      {
-        path: 'settings',
-        name: 'SystemConfig',
-        component: () => import('@/views/SystemConfig.vue'),
-        meta: { title: '系统配置' }
       }
     ]
   }

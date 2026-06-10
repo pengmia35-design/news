@@ -171,113 +171,6 @@ async function initDatabase() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
-    -- 客服系统：问题分类标签
-    CREATE TABLE IF NOT EXISTS problem_tags (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      slug TEXT NOT NULL UNIQUE,
-      parent_id INTEGER,
-      sort_order INTEGER DEFAULT 0,
-      is_active INTEGER DEFAULT 1,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (parent_id) REFERENCES problem_tags(id)
-    );
-
-    -- 客服系统：对话会话
-    CREATE TABLE IF NOT EXISTS chat_conversations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id TEXT NOT NULL,
-      user_name TEXT DEFAULT '',
-      status TEXT DEFAULT 'waiting' CHECK(status IN ('waiting','active','resolved','closed')),
-      problem_tag_id INTEGER,
-      rating INTEGER,
-      rating_tags TEXT DEFAULT '',
-      rating_text TEXT DEFAULT '',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      closed_at DATETIME,
-      FOREIGN KEY (problem_tag_id) REFERENCES problem_tags(id)
-    );
-
-    -- 客服系统：消息
-    CREATE TABLE IF NOT EXISTS chat_messages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      conversation_id INTEGER NOT NULL,
-      sender_type TEXT NOT NULL CHECK(sender_type IN ('user','agent')),
-      sender_id TEXT NOT NULL,
-      content TEXT NOT NULL,
-      content_type TEXT DEFAULT 'text' CHECK(content_type IN ('text','image')),
-      is_read INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE
-    );
-
-    -- 客服系统：FAQ 分类
-    CREATE TABLE IF NOT EXISTS faq_categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      slug TEXT NOT NULL UNIQUE,
-      sort_order INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    -- 客服系统：FAQ 文章
-    CREATE TABLE IF NOT EXISTS faq_articles (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      category_id INTEGER,
-      title TEXT NOT NULL,
-      content TEXT DEFAULT '',
-      helpful_count INTEGER DEFAULT 0,
-      unhelpful_count INTEGER DEFAULT 0,
-      view_count INTEGER DEFAULT 0,
-      is_published INTEGER DEFAULT 1,
-      sort_order INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (category_id) REFERENCES faq_categories(id)
-    );
-
-    -- 客服系统：FAQ 收藏
-    CREATE TABLE IF NOT EXISTS faq_favorites (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id TEXT NOT NULL,
-      article_id INTEGER NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (article_id) REFERENCES faq_articles(id) ON DELETE CASCADE,
-      UNIQUE(user_id, article_id)
-    );
-
-    -- 客服系统：快捷回复
-    CREATE TABLE IF NOT EXISTS quick_replies (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      category_id INTEGER,
-      title TEXT NOT NULL,
-      content TEXT NOT NULL,
-      is_public INTEGER DEFAULT 1,
-      agent_id TEXT DEFAULT '',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    -- 客服系统：系统配置
-    CREATE TABLE IF NOT EXISTS system_config (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      config_key TEXT NOT NULL UNIQUE,
-      config_value TEXT DEFAULT '',
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    -- 客服系统：离线留言
-    CREATE TABLE IF NOT EXISTS offline_messages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id TEXT NOT NULL,
-      user_name TEXT DEFAULT '',
-      problem_tag_id INTEGER,
-      content TEXT NOT NULL,
-      contact_info TEXT DEFAULT '',
-      is_converted INTEGER DEFAULT 0,
-      converted_conversation_id INTEGER,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
   `)
 
   // 插入默认分类
@@ -303,85 +196,7 @@ async function initDatabase() {
     db.run('INSERT INTO admins (username, password, nickname) VALUES (?, ?, ?)', ['admin', hashedPassword, '管理员'])
   }
 
-  // === 客服系统：种子数据 ===
-
-  // 插入问题分类标签
-  const tagResult = db.exec("SELECT COUNT(*) AS cnt FROM problem_tags")
-  if (tagResult.length > 0 && tagResult[0].values[0][0] === 0) {
-    const parentTags = [
-      ['订阅扣费', 'subscription-billing', 1],
-      ['充值支付', 'payment', 2],
-      ['账号问题', 'account', 3],
-      ['工具使用', 'tool-usage', 4],
-      ['售后反馈', 'after-sales', 5],
-      ['其他问题', 'other', 6]
-    ]
-    const childTags = {
-      'subscription-billing': [['取消自动续费', 'cancel-auto-renew'], ['扣费失败', 'charge-failed'], ['订阅失效', 'subscription-expired'], ['账单查询', 'bill-inquiry']],
-      'payment': [['充值失败', 'topup-failed'], ['到账延迟', 'payment-delay'], ['退款咨询', 'refund-inquiry'], ['支付异常', 'payment-error']],
-      'account': [['登录解绑', 'login-unbind'], ['验证码异常', 'verification-error'], ['设备限制', 'device-limit']],
-      'tool-usage': [['AI功能异常', 'ai-error'], ['API绑定问题', 'api-binding'], ['权限异常', 'permission-error']],
-      'after-sales': [['退款进度', 'refund-progress'], ['服务投诉', 'service-complaint'], ['意见建议', 'feedback']],
-      'other': [['通用咨询', 'general'], ['其他疑问', 'other-misc']]
-    }
-    for (const [i, p] of parentTags.entries()) {
-      db.run('INSERT INTO problem_tags (name, slug, sort_order) VALUES (?, ?, ?)', p)
-      const parentId = i + 1
-      for (const [j, c] of (childTags[p[1]] || []).entries()) {
-        db.run('INSERT INTO problem_tags (name, slug, parent_id, sort_order) VALUES (?, ?, ?, ?)', [c[0], c[1], parentId, j])
-      }
-    }
-  }
-
-  // 插入默认 FAQ 分类
-  const faqCatResult = db.exec("SELECT COUNT(*) AS cnt FROM faq_categories")
-  if (faqCatResult.length > 0 && faqCatResult[0].values[0][0] === 0) {
-    db.run('INSERT INTO faq_categories (name, slug, sort_order) VALUES (?, ?, ?)', ['通用问题', 'general', 1])
-  }
-
-  // 插入系统默认配置
-  const cfgResult = db.exec("SELECT COUNT(*) AS cnt FROM system_config")
-  if (cfgResult.length > 0 && cfgResult[0].values[0][0] === 0) {
-    const configs = [
-      ['welcome_message', '您好！欢迎使用 TechAI 客服，请问有什么可以帮您？'],
-      ['response_time_hint', '我们会在 20 分钟内回复您，请耐心等待'],
-      ['offline_hours_message', '当前为非工作时间，我们会在下一个工作日尽快回复您'],
-      ['ai_enabled', '1'],
-      ['ai_api_endpoint', 'https://api.deepseek.com/v1/chat/completions'],
-      ['ai_api_key', ''],
-      ['ai_model', 'deepseek-v4-flash'],
-      ['agent_online', '0']
-    ]
-    for (const c of configs) {
-      db.run('INSERT INTO system_config (config_key, config_value) VALUES (?, ?)', c)
-    }
-  }
-
-  // === 迁移：补种新增的 system_config 键 ===
-  const newConfigs = [
-    ['ai_enabled', '1'],
-    ['ai_api_endpoint', 'https://api.deepseek.com/v1/chat/completions'],
-    ['ai_api_key', ''],
-    ['ai_model', 'deepseek-v4-flash'],
-    ['agent_online', '0']
-  ]
-  for (const [key, val] of newConfigs) {
-    const exists = db.prepare('SELECT COUNT(*) AS cnt FROM system_config WHERE config_key = ?').get(key)
-    if (exists && exists.cnt === 0) {
-      db.run('INSERT INTO system_config (config_key, config_value) VALUES (?, ?)', [key, val])
-    }
-  }
-
-  // === 迁移：offline_messages 添加 updated_at 列 ===
-  (() => {
-    const cols = db.exec("SELECT name FROM pragma_table_info('offline_messages')")
-    const colNames = cols[0]?.values.map(v => v[0]) || []
-    if (!colNames.includes('updated_at')) {
-      db.exec("ALTER TABLE offline_messages ADD COLUMN updated_at DATETIME")
-    }
-  })();
-
-  // === 迁移：为 articles 表添加 like_count 和 comment_count 字段 ===
+  // === 创建评论表 ===
   const cols = db.exec("SELECT name FROM pragma_table_info('articles')")
   const colNames = cols[0]?.values.map(v => v[0]) || []
   if (!colNames.includes('like_count')) {
@@ -422,12 +237,6 @@ async function initDatabase() {
     }
   }
 
-  // === 迁移：为 chat_conversations 表添加 queue_position 字段 ===
-  const convCols = db.exec("SELECT name FROM pragma_table_info('chat_conversations')")
-  const convColNames = convCols[0]?.values.map(v => v[0]) || []
-  if (!convColNames.includes('queue_position')) {
-    db.exec("ALTER TABLE chat_conversations ADD COLUMN queue_position INTEGER DEFAULT 0")
-  }
 
   saveDatabase()
 

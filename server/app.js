@@ -36,16 +36,6 @@ async function main() {
     }
   })
 
-  // 微信 H5 移动端
-  app.get('/wechat', (req, res) => {
-    const filePath = path.join(__dirname, '..', 'wechat-h5.html')
-    if (fs.existsSync(filePath)) {
-      res.sendFile(filePath)
-    } else {
-      res.status(404).send('页面开发中，敬请期待')
-    }
-  })
-
   // 请求日志
   app.use((req, res, next) => {
     console.log(`[${new Date().toLocaleString()}] ${req.method} ${req.url}`)
@@ -77,12 +67,6 @@ async function main() {
   app.use('/api/tags', require('./routes/tags'))
   app.use('/api/upload', require('./routes/upload'))
   app.use('/api/crawler', require('./routes/crawler'))
-app.use('/api/problem-tags', require('./routes/problem-tags'))
-app.use('/api/chat', require('./routes/chat'))
-app.use('/api/faq', require('./routes/faq'))
-app.use('/api/admin/chat', require('./routes/admin-chat'))
-app.use('/api/admin/faq', require('./routes/admin-faq'))
-app.use('/api/admin/system', require('./routes/admin-system'))
 
   // 全局错误处理
   app.use((err, req, res, next) => {
@@ -96,9 +80,6 @@ app.use('/api/admin/system', require('./routes/admin-system'))
     console.log(`  📦 数据库: SQLite (sql.js)`)
     console.log(`  🔧 环境: ${process.env.NODE_ENV || 'development'}\n`)
   })
-
-  // WebSocket 实时推送
-  require('./websocket').initWebSocket(server)
 
   // 优雅退出
   process.on('SIGINT', () => {

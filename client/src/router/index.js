@@ -40,18 +40,6 @@ const routes = [
     name: 'Admin',
     component: () => import('@/views/Admin.vue'),
     meta: { title: '后台管理' }
-  },
-  {
-    path: '/faq',
-    name: 'FaqCenter',
-    component: () => import('@/views/FaqCenter.vue'),
-    meta: { title: '帮助中心' }
-  },
-  {
-    path: '/faq/:id',
-    name: 'FaqArticle',
-    component: () => import('@/views/FaqArticle.vue'),
-    meta: { title: '帮助文章' }
   }
 ]
 
