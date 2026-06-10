@@ -75,7 +75,26 @@
       "Bash(Select-Object Id, ProcessName, StartTime)",
       "PowerShell(Get-ChildItem *)",
       "PowerShell(Get-Content \"D:\\\\tiktik\\\\news\\\\client\\\\src\\\\views\\\\Home.vue\" -Raw | ForEach-Object { $_.Substring\\(3200, 800\\) })",
-      "WebFetch(domain:localhost)"
+      "WebFetch(domain:localhost)",
+      "PowerShell(Start-Process -FilePath \"npm\" -ArgumentList \"run\",\"dev:server\" -WorkingDirectory \"D:\\\\tiktik\\\\news\" -WindowStyle Hidden; Start-Process -FilePath \"npm\" -ArgumentList \"run\",\"dev:client\" -WorkingDirectory \"D:\\\\tiktik\\\\news\" -WindowStyle Hidden; Start-Process -FilePath \"npm\" -ArgumentList \"run\",\"dev:admin\" -WorkingDirectory \"D:\\\\tiktik\\\\news\" -WindowStyle Hidden; Write-Host \"3 services launched\")",
+      "PowerShell(Start-Process -FilePath \"npm\" -ArgumentList \"run\",\"dev\" -WorkingDirectory \"D:\\\\tiktik\\\\news\\\\server\" -WindowStyle Minimized; Start-Process -FilePath \"npm\" -ArgumentList \"run\",\"dev\" -WorkingDirectory \"D:\\\\tiktik\\\\news\\\\client\" -WindowStyle Minimized; Start-Process -FilePath \"npm\" -ArgumentList \"run\",\"dev\" -WorkingDirectory \"D:\\\\tiktik\\\\news\\\\admin\" -WindowStyle Minimized; Write-Host \"launched\")",
+      "PowerShell(Start-Sleep 8; Write-Host \"--- Server ---\"; try { $r = Invoke-WebRequest \"http://localhost:3001/api/categories\" -UseBasicParsing -TimeoutSec 4; Write-Host $r.StatusCode } catch { Write-Host \"DOWN: $_\" }; Write-Host \"--- Client ---\"; try { $r = Invoke-WebRequest \"http://localhost:5175\" -UseBasicParsing -TimeoutSec 4; Write-Host $r.StatusCode } catch { Write-Host \"DOWN: $_\" }; Write-Host \"--- Admin ---\"; try { $r = Invoke-WebRequest \"http://localhost:5174\" -UseBasicParsing -TimeoutSec 4; Write-Host $r.StatusCode } catch { Write-Host \"DOWN: $_\" })",
+      "PowerShell(Start-Process -FilePath \"cmd\" -ArgumentList \"/c\",\"npm\",\"run\",\"dev\" -WorkingDirectory \"D:\\\\tiktik\\\\news\\\\client\" -NoNewWindow; Start-Process -FilePath \"cmd\" -ArgumentList \"/c\",\"npm\",\"run\",\"dev\" -WorkingDirectory \"D:\\\\tiktik\\\\news\\\\admin\" -NoNewWindow; Write-Host \"client + admin launched\")",
+      "PowerShell(try { $r = Invoke-WebRequest \"http://localhost:3001/api/admin/login\" -UseBasicParsing -Method POST -ContentType \"application/json\" -Body '{\"username\":\"admin\",\"password\":\"admin123\"}' -TimeoutSec 5; Write-Host $r.Content } catch { Write-Host \"ERROR:\" $_.Exception.Response.StatusCode.value__; try { $sr = New-Object System.IO.StreamReader\\($_.Exception.Response.GetResponseStream\\(\\)\\); Write-Host $sr.ReadToEnd\\(\\) } catch {} })",
+      "WebFetch(domain:cdn.jsdelivr.net)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(python -m json.tool)",
+      "PowerShell($r = Invoke-RestMethod -Uri \"http://localhost:3001/api/admin/login\" -Method Post -Body '{\"username\":\"admin\",\"password\":\"admin123\"}' -ContentType \"application/json\"; $r.code; $r.message)",
+      "Bash(xxd /tmp/resp.txt)",
+      "PowerShell(Start-Sleep -Seconds 8; $r = Invoke-RestMethod -Uri \"http://localhost:3001/api/admin/login\" -Method Post -Body '{\"username\":\"admin\",\"password\":\"admin123\"}' -ContentType \"application/json\"; \"code=$\\($r.code\\) msg=$\\($r.message\\)\")",
+      "Bash(timeout 10)",
+      "PowerShell(netstat *)",
+      "Bash(findstr LISTENING)",
+      "Bash(timeout 5)",
+      "Bash(timeout 8)",
+      "Bash(type \"C:\\\\Users\\\\13928\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--tiktik-news\\\\f6e75be4-574b-45e9-963d-332aaf78c541\\\\tasks\\\\b6mnkm0uu.output\")",
+      "Bash(ver)",
+      "PowerShell(taskkill *)"
     ]
   }
 }
